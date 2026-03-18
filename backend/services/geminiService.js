@@ -1,7 +1,57 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-001';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const REQUEST_TIMEOUT_MS = 30000;
+
+const isOpenRouterKey = (key = '') => key.startsWith('sk-or-v1-');
+
+const getGeminiApiKey = () => {
+  const key = process.env.GEMINI_API_KEY || '';
+  if (!key || isOpenRouterKey(key)) {
+    return '';
+  }
+
+  return key;
+};
+
+const getOpenRouterApiKey = () => {
+  if (process.env.OPENROUTER_API_KEY) {
+    return process.env.OPENROUTER_API_KEY;
+  }
+
+  return isOpenRouterKey(process.env.GEMINI_API_KEY || '') ? process.env.GEMINI_API_KEY : '';
+};
+
+const getGenAIClient = () => {
+  const geminiApiKey = getGeminiApiKey();
+  if (!geminiApiKey) {
+    throw new Error('Missing GEMINI_API_KEY in backend environment');
+  }
+
+  return new GoogleGenerativeAI(geminiApiKey);
+};
+
+const getFallbackReason = (errorMessage = '') => {
+  if (!errorMessage) return 'Gemini API request failed';
+  if (errorMessage.includes('reported as leaked')) {
+    return 'Your Gemini API key has been blocked by Google because it was reported as leaked';
+  }
+  if (errorMessage.includes('404 Not Found') || errorMessage.includes('is not found for API version')) {
+    return `The configured Gemini model is unavailable. Try a supported model such as ${DEFAULT_GEMINI_MODEL}`;
+  }
+  if (errorMessage.includes('API key not valid')) {
+    return 'Your Gemini API key is invalid';
+  }
+  if (errorMessage.includes('quota')) {
+    return 'Gemini API quota was exceeded';
+  }
+  if (errorMessage.includes('timeout')) {
+    return 'Gemini API request timed out';
+  }
+  return errorMessage;
+};
 
 // ─── Build the prompt exactly as specified ───────────────────────────────────
 const buildPrompt = (code, language, interviewMode) => {
@@ -88,6 +138,95 @@ const parseResponse = (text) => {
   return sections;
 };
 
+const normalizeTextContent = (content) => {
+  if (typeof content === 'string') {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part;
+        if (part?.type === 'text') return part.text || '';
+        return '';
+      })
+      .join('\n')
+      .trim();
+  }
+
+  return '';
+};
+
+const withTimeout = async (promiseFactory, label) => {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timeout after 30s`)), REQUEST_TIMEOUT_MS)
+  );
+
+  return Promise.race([promiseFactory(), timeoutPromise]);
+};
+
+const callGemini = async (prompt) => {
+  if (!getGeminiApiKey()) {
+    throw new Error('Direct Gemini API key is not configured');
+  }
+
+  const genAI = getGenAIClient();
+  const model = genAI.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL });
+  const result = await withTimeout(() => model.generateContent(prompt), 'Gemini API');
+  const rawText = result.response.text();
+
+  if (!rawText?.trim()) {
+    throw new Error('Gemini returned an empty response');
+  }
+
+  return {
+    providerUsed: 'gemini',
+    modelUsed: DEFAULT_GEMINI_MODEL,
+    rawText,
+  };
+};
+
+const callOpenRouter = async (prompt) => {
+  const openRouterApiKey = getOpenRouterApiKey();
+  if (!openRouterApiKey) {
+    throw new Error('OpenRouter API key is not configured');
+  }
+
+  const response = await withTimeout(
+    () =>
+      fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openRouterApiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
+          'X-Title': 'AI Code Review Assistant',
+        },
+        body: JSON.stringify({
+          model: DEFAULT_OPENROUTER_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      }),
+    'OpenRouter API'
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error?.message || `OpenRouter request failed with status ${response.status}`);
+  }
+
+  const rawText = normalizeTextContent(data?.choices?.[0]?.message?.content);
+  if (!rawText) {
+    throw new Error('OpenRouter returned an empty response');
+  }
+
+  return {
+    providerUsed: 'openrouter',
+    modelUsed: DEFAULT_OPENROUTER_MODEL,
+    rawText,
+  };
+};
+
 // ─── Fallback: Rule-Based Static Analysis ────────────────────────────────────
 const fallbackAnalysis = (code, language, interviewMode) => {
   const lines = code.split('\n');
@@ -159,28 +298,46 @@ const fallbackAnalysis = (code, language, interviewMode) => {
 
 // ─── Main Service Function ────────────────────────────────────────────────────
 const analyzeCode = async (code, language, interviewMode) => {
-  // Try Gemini first
+  const prompt = buildPrompt(code, language, interviewMode);
+  const providerErrors = [];
+
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const prompt = buildPrompt(code, language, interviewMode);
-
-    // Set a timeout to avoid hanging
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini API timeout after 30s')), 30000)
-    );
-
-    const geminiPromise = model.generateContent(prompt);
-    const result = await Promise.race([geminiPromise, timeoutPromise]);
-
-    const rawText = result.response.text();
+    const { rawText, providerUsed, modelUsed } = await callGemini(prompt);
     const parsed = parseResponse(rawText);
 
-    return { parsed, rawResponse: rawText, isFallback: false };
-  } catch (err) {
-    console.warn('⚠️ Gemini API failed, using fallback analysis:', err.message);
+    return { parsed, rawResponse: rawText, isFallback: false, providerUsed, modelUsed, usedBackup: false };
+  } catch (geminiError) {
+    const geminiFailureReason = getFallbackReason(geminiError.message);
+    providerErrors.push(`Gemini: ${geminiFailureReason}`);
+    console.warn('⚠️ Gemini API failed, trying OpenRouter backup:', geminiFailureReason);
+  }
+
+  try {
+    const { rawText, providerUsed, modelUsed } = await callOpenRouter(prompt);
+    const parsed = parseResponse(rawText);
+
+    return {
+      parsed,
+      rawResponse: rawText,
+      isFallback: false,
+      providerUsed,
+      modelUsed,
+      usedBackup: true,
+      fallbackReason: providerErrors.join(' | '),
+    };
+  } catch (openRouterError) {
+    providerErrors.push(`OpenRouter: ${openRouterError.message}`);
+    console.warn('⚠️ OpenRouter backup failed, using static fallback:', openRouterError.message);
     const parsed = fallbackAnalysis(code, language, interviewMode);
-    return { parsed, rawResponse: '', isFallback: true };
+    return {
+      parsed,
+      rawResponse: '',
+      isFallback: true,
+      fallbackReason: providerErrors.join(' | '),
+      providerUsed: 'static-fallback',
+      modelUsed: '',
+      usedBackup: true,
+    };
   }
 };
 

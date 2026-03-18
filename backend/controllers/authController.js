@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const normalizeEmail = (email = '') => email.trim().toLowerCase();
+
 // Generate a signed JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -14,18 +16,19 @@ const generateToken = (id) => {
 const signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!name || !email || !password) {
+    if (!name?.trim() || !normalizedEmail || !password) {
       return res.status(400).json({ success: false, message: 'Please provide name, email and password' });
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'An account with this email already exists' });
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -45,13 +48,14 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
     // Find user and explicitly include password field
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }

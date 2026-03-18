@@ -20,7 +20,15 @@ const createReview = async (req, res, next) => {
     }
 
     // Call Gemini (or fallback)
-    const { parsed, rawResponse, isFallback } = await analyzeCode(code, language, interviewMode);
+    const {
+      parsed,
+      rawResponse,
+      isFallback,
+      fallbackReason = '',
+      providerUsed = '',
+      modelUsed = '',
+      usedBackup = false,
+    } = await analyzeCode(code, language, interviewMode);
 
     // Save to database
     const review = await Review.create({
@@ -37,12 +45,20 @@ const createReview = async (req, res, next) => {
       success: true,
       message: isFallback ? 'Review completed (fallback mode)' : 'Review completed',
       isFallback,
+      fallbackReason,
+      providerUsed,
+      modelUsed,
+      usedBackup,
       review: {
         id: review._id,
         language: review.language,
         interviewMode: review.interviewMode,
         response: review.response,
         isFallback: review.isFallback,
+        fallbackReason,
+        providerUsed,
+        modelUsed,
+        usedBackup,
         createdAt: review.createdAt,
         title: review.title,
         code: review.code,
