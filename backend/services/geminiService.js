@@ -84,6 +84,9 @@ ${
 }
 
 Be precise, avoid generic advice, justify everything.
+Use plain readable text only.
+Do not use markdown bold, bullet asterisks, code fences, backticks, or quoted variable names unless absolutely necessary.
+If you compare multiple implementations, separate them with short labels like "Implementation 1:", "Implementation 2:", and keep each on its own paragraph.
 Language: ${language}
 Interview Mode: ${interviewMode ? 'ON' : 'OFF'}
 Focus Areas: ${focusList}
@@ -101,9 +104,15 @@ ${code}
 
 const cleanSectionContent = (content = '') =>
   content
-    .replace(/^\s*\*\*\s*/gm, '')
-    .replace(/\s*\*\*\s*$/gm, '')
+    .replace(/```[\s\S]*?```/g, (block) => block.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, ''))
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
     .replace(/^\s*[-*]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 
 const normalizeResponseText = (text = '') =>

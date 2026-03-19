@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/review', label: 'New Review', icon: Code2 },
   { path: '/history', label: 'History', icon: History },
-  { path: '/profile', label: 'Profile', icon: Settings },
 ];
 
 export default function Layout({ children }) {

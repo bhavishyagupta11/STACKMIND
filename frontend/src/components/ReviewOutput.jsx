@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
@@ -34,6 +34,52 @@ const COLOR_MAP = {
   pink:   { border: 'border-accent-pink/30',   bg: 'bg-accent-pink/5',   text: 'text-accent-pink',   icon: 'text-accent-pink' },
 };
 
+const normalizeDisplayText = (text = '') =>
+  text
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\\"/g, '"')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/^\s*[*-]\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+const isSubheading = (line = '') =>
+  /^(implementation\s+\d+|first implementation|second implementation|third implementation|time complexity|space complexity|issue|fix|recommendation|test case|edge case|why|impact|summary|hotspot)\s*:$/i.test(line.trim());
+
+function FormattedText({ content }) {
+  const text = normalizeDisplayText(content);
+  const blocks = text.split(/\n\s*\n/).filter(Boolean);
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, index) => {
+        const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
+
+        if (lines.length === 0) return null;
+
+        return (
+          <div key={`${block.slice(0, 24)}-${index}`} className="rounded-lg bg-bg-overlay/45 border border-border/60 p-3.5 space-y-2">
+            {lines.map((line, lineIndex) => (
+              isSubheading(line) ? (
+                <div key={`${line}-${lineIndex}`} className="text-text-primary font-display font-semibold text-sm">
+                  {line}
+                </div>
+              ) : (
+                <p key={`${line}-${lineIndex}`} className="text-text-secondary text-sm leading-7 font-body">
+                  {line}
+                </p>
+              )
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
@@ -49,8 +95,7 @@ function CopyButton({ text }) {
   );
 }
 
-function SectionCard({ section, content, language, interviewMode }) {
-  const [collapsed, setCollapsed] = useState(false);
+function SectionCard({ section, content, language, interviewMode, isOpen, onToggle }) {
   const colors = COLOR_MAP[section.color] || COLOR_MAP.cyan;
   const Icon = section.icon;
 
@@ -64,7 +109,7 @@ function SectionCard({ section, content, language, interviewMode }) {
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-3.5 cursor-pointer select-none"
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={onToggle}
       >
         <div className="flex items-center gap-3">
           <span className="text-lg leading-none">{section.emoji}</span>
@@ -73,13 +118,13 @@ function SectionCard({ section, content, language, interviewMode }) {
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          {section.isCode && !collapsed && <CopyButton text={content} />}
-          {collapsed ? <ChevronDown size={15} className="text-text-muted" /> : <ChevronUp size={15} className="text-text-muted" />}
+          {section.isCode && isOpen && <CopyButton text={content} />}
+          {isOpen ? <ChevronUp size={15} className="text-text-muted" /> : <ChevronDown size={15} className="text-text-muted" />}
         </div>
       </div>
 
       {/* Body */}
-      {!collapsed && (
+      {isOpen && (
         <div className="px-5 pb-5">
           {section.isCode ? (
             <div className="rounded-lg overflow-hidden border border-border">
@@ -96,13 +141,11 @@ function SectionCard({ section, content, language, interviewMode }) {
                 }}
                 showLineNumbers
               >
-                {content}
+                {normalizeDisplayText(content)}
               </SyntaxHighlighter>
             </div>
           ) : (
-            <div className="text-text-secondary text-sm leading-relaxed font-body whitespace-pre-wrap">
-              {content}
-            </div>
+            <FormattedText content={content} />
           )}
         </div>
       )}
@@ -114,6 +157,16 @@ export default function ReviewOutput({ review }) {
   if (!review) return null;
 
   const { response, language, interviewMode, isFallback, focusAreas = [], customInstructions, contextNotes } = review;
+  const visibleSections = SECTIONS.filter((section) => {
+    if (!section.alwaysShow && !interviewMode) return false;
+    return Boolean(response?.[section.key]?.trim());
+  });
+  const firstOpenSection = visibleSections[0]?.key || null;
+  const [openSection, setOpenSection] = useState(firstOpenSection);
+
+  useEffect(() => {
+    setOpenSection(firstOpenSection);
+  }, [firstOpenSection, review]);
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -154,13 +207,15 @@ export default function ReviewOutput({ review }) {
       )}
 
       {/* Section cards */}
-      {SECTIONS.map((section) => (
+      {visibleSections.map((section) => (
         <SectionCard
           key={section.key}
           section={section}
           content={response[section.key]}
           language={language}
           interviewMode={interviewMode}
+          isOpen={openSection === section.key}
+          onToggle={() => setOpenSection((current) => current === section.key ? null : section.key)}
         />
       ))}
     </div>

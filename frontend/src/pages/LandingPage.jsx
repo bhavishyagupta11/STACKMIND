@@ -25,8 +25,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-bg-base noise">
       {/* Background mesh */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accent-cyan/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-purple/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accent-cyan/6 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-[10%] w-[460px] h-[460px] bg-accent-pink/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-amber/5 rounded-full blur-3xl" />
       </div>
 
       {/* Nav */}
