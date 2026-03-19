@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Zap } from 'lucide-react';
 
 const MESSAGES = [
-  'Reading your code...',
-  'Analyzing logic flow...',
-  'Detecting bugs & issues...',
-  'Evaluating complexity...',
-  'Generating optimizations...',
-  'Preparing code quality report...',
+  'Reading your code and context...',
+  'Building a TL;DR summary...',
+  'Flagging risk hotspots...',
+  'Evaluating complexity and quality...',
+  'Generating walkthrough and test notes...',
+  'Applying your custom instructions...',
   'Finalizing your review...',
 ];
 

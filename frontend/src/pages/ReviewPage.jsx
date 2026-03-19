@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { submitReview } from '../services/reviewService';
 import CodeEditor from '../components/CodeEditor';
 import ReviewOutput from '../components/ReviewOutput';
@@ -6,9 +6,18 @@ import AnalyzingLoader from '../components/AnalyzingLoader';
 import { LANGUAGES, ACCEPTED_EXTENSIONS, detectLanguageFromFilename } from '../utils/languages';
 import {
   Code2, Upload, Zap, RotateCcw, Mic, MicOff,
-  ChevronDown, FileCode, AlertCircle
+  ChevronDown, FileCode, AlertCircle, Sparkles, ShieldCheck, Gauge, FlaskConical, BookOpenText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const REVIEW_PREFS_KEY = 'reviewPreferences.v2';
+const FOCUS_AREAS = [
+  { value: 'security', label: 'Security', icon: ShieldCheck },
+  { value: 'performance', label: 'Performance', icon: Gauge },
+  { value: 'testing', label: 'Testing', icon: FlaskConical },
+  { value: 'readability', label: 'Readability', icon: BookOpenText },
+  { value: 'architecture', label: 'Architecture', icon: Sparkles },
+];
 
 const DEFAULT_CODE = `// Paste your code here or upload a file
 function twoSum(nums, target) {
@@ -26,6 +35,10 @@ export default function ReviewPage() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [language, setLanguage] = useState('javascript');
   const [interviewMode, setInterviewMode] = useState(false);
+  const [focusAreas, setFocusAreas] = useState([]);
+  const [customInstructions, setCustomInstructions] = useState('');
+  const [contextNotes, setContextNotes] = useState('');
+  const [savePreferences, setSavePreferences] = useState(true);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -33,6 +46,22 @@ export default function ReviewPage() {
   const [fileName, setFileName] = useState(null);
   const fileRef = useRef();
   const resultRef = useRef();
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(REVIEW_PREFS_KEY) || '{}');
+      setFocusAreas(Array.isArray(stored.focusAreas) ? stored.focusAreas : []);
+      setCustomInstructions(stored.customInstructions || '');
+    } catch {
+      // ignore malformed local storage
+    }
+  }, []);
+
+  const toggleFocusArea = (value) => {
+    setFocusAreas((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
+  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -65,8 +94,26 @@ export default function ReviewPage() {
     setError(null);
 
     try {
-      const data = await submitReview({ code, language, interviewMode });
+      const reviewPayload = {
+        code,
+        language,
+        interviewMode,
+        focusAreas,
+        customInstructions,
+        contextNotes,
+      };
+      const data = await submitReview(reviewPayload);
       setResult(data.review);
+
+      if (savePreferences) {
+        localStorage.setItem(
+          REVIEW_PREFS_KEY,
+          JSON.stringify({ focusAreas, customInstructions })
+        );
+      } else {
+        localStorage.removeItem(REVIEW_PREFS_KEY);
+      }
+
       // Scroll to results
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       if (data.isFallback) {
@@ -87,6 +134,7 @@ export default function ReviewPage() {
     setCode(DEFAULT_CODE);
     setLanguage('javascript');
     setInterviewMode(false);
+    setContextNotes('');
     setResult(null);
     setError(null);
     setFileName(null);
@@ -108,7 +156,7 @@ export default function ReviewPage() {
       </div>
 
       {/* Controls row */}
-      <div className="glass-card p-4">
+      <div className="glass-card p-4 md:p-5 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Language selector */}
           <div className="relative">
@@ -199,6 +247,85 @@ export default function ReviewPage() {
             </p>
           </div>
         )}
+
+        <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+          <div className="space-y-3">
+            <div>
+              <div className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">Focus areas</div>
+              <div className="flex flex-wrap gap-2">
+                {FOCUS_AREAS.map(({ value, label, icon: Icon }) => {
+                  const active = focusAreas.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggleFocusArea(value)}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-mono transition-colors ${
+                        active
+                          ? 'border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan'
+                          : 'border-border bg-bg-overlay text-text-secondary hover:text-text-primary'
+                      }`}
+                    >
+                      <Icon size={13} />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">
+                Custom review instructions
+              </label>
+              <textarea
+                value={customInstructions}
+                onChange={(e) => setCustomInstructions(e.target.value)}
+                rows={4}
+                maxLength={2000}
+                className="input-field min-h-[108px] resize-y"
+                placeholder="Example: Prioritize security and API contract issues. Prefer concrete fixes over generic advice."
+              />
+              <div className="mt-1 text-right text-text-muted text-xs font-mono">
+                {customInstructions.length}/2000
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">
+                Project context
+              </label>
+              <textarea
+                value={contextNotes}
+                onChange={(e) => setContextNotes(e.target.value)}
+                rows={6}
+                maxLength={3000}
+                className="input-field min-h-[162px] resize-y"
+                placeholder="Add repo context, business rules, known constraints, or what changed in this submission."
+              />
+              <div className="mt-1 text-right text-text-muted text-xs font-mono">
+                {contextNotes.length}/3000
+              </div>
+            </div>
+
+            <label className="flex items-center gap-3 rounded-lg border border-border bg-bg-overlay px-3 py-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={savePreferences}
+                onChange={(e) => setSavePreferences(e.target.checked)}
+                className="accent-accent-cyan"
+              />
+              <div>
+                <div className="text-text-primary text-sm font-display">Remember my review preferences</div>
+                <div className="text-text-secondary text-xs">
+                  Save focus areas and custom instructions for future reviews.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
       </div>
 
       {/* Monaco Editor */}
@@ -236,6 +363,11 @@ export default function ReviewPage() {
               <span className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 ml-auto">
                 {result.language}
               </span>
+              {result.focusAreas?.length > 0 && (
+                <span className="badge bg-bg-overlay border border-border text-text-secondary">
+                  {result.focusAreas.length} focus areas
+                </span>
+              )}
               {result.interviewMode && (
                 <span className="badge bg-accent-pink/10 text-accent-pink border border-accent-pink/20">
                   Interview Mode

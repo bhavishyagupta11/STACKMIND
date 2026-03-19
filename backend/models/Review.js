@@ -22,13 +22,32 @@ const ReviewSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    focusAreas: {
+      type: [String],
+      default: [],
+    },
+    customInstructions: {
+      type: String,
+      default: '',
+      maxlength: 2000,
+    },
+    contextNotes: {
+      type: String,
+      default: '',
+      maxlength: 3000,
+    },
     // Full structured response from Gemini or fallback analyzer
     response: {
+      summary: { type: String, default: '' },
       codeUnderstanding: { type: String, default: '' },
+      riskHotspots: { type: String, default: '' },
       bugsIssues: { type: String, default: '' },
       complexity: { type: String, default: '' },
       optimizationSuggestions: { type: String, default: '' },
       codeQuality: { type: String, default: '' },
+      testRecommendations: { type: String, default: '' },
+      conventionsAlignment: { type: String, default: '' },
+      walkthrough: { type: String, default: '' },
       edgeCases: { type: String, default: '' },
       improvedCode: { type: String, default: '' },
       finalVerdict: { type: String, default: '' },

@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Code2, Brain, Shield, History, ArrowRight, Check, Mic } from 'lucide-react';
+import { Zap, Code2, Brain, History, ArrowRight, Check, Mic, Workflow, Sparkles } from 'lucide-react';
 
 const FEATURES = [
-  { icon: Brain, title: 'AI-Powered Analysis', desc: 'Google Gemini reviews your code like a senior engineer — bugs, complexity, optimizations and more.', color: 'cyan' },
-  { icon: Code2, title: 'Monaco Code Editor', desc: 'Full-featured editor with syntax highlighting for 15+ languages, or simply upload your file.', color: 'purple' },
-  { icon: Mic, title: 'Interview Mode', desc: 'Activates in-depth explanations and follow-up questions to help you ace your next technical interview.', color: 'pink' },
-  { icon: History, title: 'Review History', desc: 'Every review is saved. Browse, revisit, and compare your past code submissions anytime.', color: 'green' },
-  { icon: Shield, title: 'Secure & Private', desc: 'JWT authentication keeps your code and reviews safe. Your data belongs to you.', color: 'amber' },
-  { icon: Zap, title: 'Instant Fallback', desc: 'If AI is unavailable, our rule-based analyzer still catches nested loops, missing checks, and more.', color: 'red' },
+  { icon: Brain, title: 'Review Summaries', desc: 'Get a TL;DR, risk hotspots, and a walkthrough before diving into detailed findings.', color: 'cyan' },
+  { icon: Workflow, title: 'Custom Review Rules', desc: 'Set focus areas, project context, and custom instructions so reviews match your team standards.', color: 'purple' },
+  { icon: Sparkles, title: 'Persistent Preferences', desc: 'Save your review preferences and reuse them automatically on future submissions.', color: 'pink' },
+  { icon: Code2, title: 'Editor + Upload Flow', desc: 'Paste code, upload files, and review them in a polished workspace with language-aware editing.', color: 'green' },
+  { icon: Mic, title: 'Interview Deep Dives', desc: 'Turn on interview mode for explanation-heavy feedback and follow-up questions.', color: 'amber' },
+  { icon: History, title: 'Traceable Review History', desc: 'Every review keeps its code, context, focus areas, and output so teams can revisit decisions later.', color: 'red' },
 ];
 
 const COLOR = {
@@ -47,17 +47,17 @@ export default function LandingPage() {
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/5 mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse" />
-          <span className="text-accent-cyan text-xs font-mono">Powered by Google Gemini 1.5 Flash</span>
+          <span className="text-accent-cyan text-xs font-mono">Inspired by modern AI review workflows</span>
         </div>
 
         <h1 className="font-display font-bold text-5xl md:text-7xl text-text-primary leading-tight mb-6">
-          Code smarter.<br />
-          <span className="gradient-text">Ship faster.</span>
+          Review like a teammate.<br />
+          <span className="gradient-text">Ship with confidence.</span>
         </h1>
 
         <p className="text-text-secondary text-lg md:text-xl max-w-2xl mx-auto mb-10 font-body leading-relaxed">
-          An AI-powered code review assistant that catches bugs, evaluates complexity,
-          suggests optimizations, and preps you for technical interviews — instantly.
+          A warmer, faster AI code review workspace with customizable instructions,
+          risk summaries, change walkthroughs, and saved review preferences.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -71,7 +71,7 @@ export default function LandingPage() {
 
         {/* Trust badges */}
         <div className="flex flex-wrap justify-center gap-6 mt-14 text-text-muted text-xs font-mono">
-          {['JWT Auth', 'MongoDB Storage', 'Fallback Analyzer', 'Interview Mode', '15+ Languages'].map((badge) => (
+          {['Custom Instructions', 'Saved Preferences', 'Risk Hotspots', 'Walkthroughs', 'Review History'].map((badge) => (
             <div key={badge} className="flex items-center gap-1.5">
               <Check size={12} className="text-accent-green" />
               <span>{badge}</span>

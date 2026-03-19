@@ -54,15 +54,24 @@ const getFallbackReason = (errorMessage = '') => {
 };
 
 // ─── Build the prompt exactly as specified ───────────────────────────────────
-const buildPrompt = (code, language, interviewMode) => {
+const buildPrompt = ({ code, language, interviewMode, focusAreas = [], customInstructions = '', contextNotes = '' }) => {
+  const focusList = focusAreas.length ? focusAreas.join(', ') : 'general correctness, maintainability, and performance';
+  const extraInstructions = customInstructions.trim() || 'No additional custom instructions provided.';
+  const extraContext = contextNotes.trim() || 'No extra project context provided.';
+
   return `You are a senior software engineer, code reviewer, and technical interviewer.
 Analyze the given code and respond ONLY in structured format:
 
+🧭 TL;DR Summary
 🧠 Code Understanding
+🔥 Risk Hotspots
 ❌ Bugs / Issues
 ⚙️ Time & Space Complexity
 🚀 Optimization Suggestions
 🧹 Code Quality Review
+🧪 Testing Recommendations
+📐 Conventions Alignment
+🪜 Change Walkthrough
 ⚠️ Edge Cases
 💡 Improved Code
 📊 Final Verdict
@@ -77,6 +86,12 @@ ${
 Be precise, avoid generic advice, justify everything.
 Language: ${language}
 Interview Mode: ${interviewMode ? 'ON' : 'OFF'}
+Focus Areas: ${focusList}
+Project Context:
+${extraContext}
+
+Custom Review Instructions:
+${extraInstructions}
 
 Code:
 \`\`\`${language}
@@ -95,18 +110,23 @@ const normalizeResponseText = (text = '') =>
   text
     .replace(/\r\n/g, '\n')
     .replace(/^\s{0,3}#{1,6}\s*/gm, '')
-    .replace(/^\s*\*\*(🧠|❌|⚙️|🚀|🧹|⚠️|💡|📊|🎤|❓)/gm, '$1')
-    .replace(/(Understanding|Issues|Complexity|Suggestions|Review|Cases|Code|Verdict|Explanation|Questions)\*\*/g, '$1')
+    .replace(/^\s*\*\*(🧭|🧠|🔥|❌|⚙️|🚀|🧹|🧪|📐|🪜|⚠️|💡|📊|🎤|❓)/gm, '$1')
+    .replace(/(Summary|Understanding|Hotspots|Issues|Complexity|Suggestions|Review|Recommendations|Alignment|Walkthrough|Cases|Code|Verdict|Explanation|Questions)\*\*/g, '$1')
     .trim();
 
 // ─── Parse Gemini/OpenRouter raw text into structured sections ───────────────
 const parseResponse = (text) => {
   const sections = {
+    summary: '',
     codeUnderstanding: '',
+    riskHotspots: '',
     bugsIssues: '',
     complexity: '',
     optimizationSuggestions: '',
     codeQuality: '',
+    testRecommendations: '',
+    conventionsAlignment: '',
+    walkthrough: '',
     edgeCases: '',
     improvedCode: '',
     finalVerdict: '',
@@ -118,11 +138,16 @@ const parseResponse = (text) => {
 
   // Map emoji headers to section keys
   const sectionMap = [
+    { key: 'summary', markers: ['🧭 TL;DR Summary', '🧭 TL;DR', '🧭 Summary'] },
     { key: 'codeUnderstanding', markers: ['🧠 Code Understanding', '🧠Code Understanding'] },
+    { key: 'riskHotspots', markers: ['🔥 Risk Hotspots', '🔥Risk Hotspots'] },
     { key: 'bugsIssues', markers: ['❌ Bugs / Issues', '❌ Bugs/Issues', '❌Bugs / Issues'] },
     { key: 'complexity', markers: ['⚙️ Time & Space Complexity', '⚙️Time & Space Complexity'] },
     { key: 'optimizationSuggestions', markers: ['🚀 Optimization Suggestions', '🚀Optimization Suggestions'] },
     { key: 'codeQuality', markers: ['🧹 Code Quality Review', '🧹Code Quality Review'] },
+    { key: 'testRecommendations', markers: ['🧪 Testing Recommendations', '🧪Testing Recommendations'] },
+    { key: 'conventionsAlignment', markers: ['📐 Conventions Alignment', '📐Conventions Alignment'] },
+    { key: 'walkthrough', markers: ['🪜 Change Walkthrough', '🪜Change Walkthrough'] },
     { key: 'edgeCases', markers: ['⚠️ Edge Cases', '⚠️Edge Cases'] },
     { key: 'improvedCode', markers: ['💡 Improved Code', '💡Improved Code'] },
     { key: 'finalVerdict', markers: ['📊 Final Verdict', '📊Final Verdict'] },
@@ -306,11 +331,16 @@ const fallbackAnalysis = (code, language, interviewMode) => {
   }
 
   return {
+    summary: `Fallback static review for ${language}. ${lineCount} lines analyzed with emphasis on reliability, maintainability, and basic performance signals.`,
     codeUnderstanding: `[Fallback Analysis — Gemini unavailable]\nLanguage: ${language}\nLines of code: ${lineCount}\nThis is a static rule-based analysis. For full AI-powered review, ensure Gemini API is configured correctly.`,
+    riskHotspots: bugs.length > 0 ? bugs.join('\n\n') : 'No major hotspots detected from static heuristics.',
     bugsIssues: bugs.length > 0 ? bugs.join('\n\n') : 'No obvious bugs detected in static analysis.',
     complexity: `Time Complexity: ${timeComplexity}\nSpace Complexity: ${spaceComplexity}`,
     optimizationSuggestions: optimizations.length > 0 ? optimizations.join('\n\n') : 'No major optimizations identified in static analysis.',
     codeQuality: qualityIssues.length > 0 ? qualityIssues.join('\n\n') : 'Code quality looks acceptable at a surface level.',
+    testRecommendations: 'Add tests for empty inputs, invalid values, happy-path behavior, and boundary conditions.',
+    conventionsAlignment: 'Fallback mode cannot infer full team conventions. Check naming consistency, function size, and error-handling style manually.',
+    walkthrough: 'Review the main execution path first, then inspect nested loops, unchecked inputs, and exception-prone branches.',
     edgeCases: edgeCases.length > 0 ? edgeCases.join('\n\n') : 'Consider testing with empty inputs, null values, and boundary conditions.',
     improvedCode: '// Fallback mode: Full improved code requires Gemini API.\n// Ensure GEMINI_API_KEY is set in your .env file.',
     finalVerdict: `⚠️ Fallback analysis only. Gemini API was unreachable.\nStatic checks found ${bugs.length} potential bug(s), ${qualityIssues.length} quality issue(s).`,
@@ -320,8 +350,8 @@ const fallbackAnalysis = (code, language, interviewMode) => {
 };
 
 // ─── Main Service Function ────────────────────────────────────────────────────
-const analyzeCode = async (code, language, interviewMode) => {
-  const prompt = buildPrompt(code, language, interviewMode);
+const analyzeCode = async ({ code, language, interviewMode, focusAreas, customInstructions, contextNotes }) => {
+  const prompt = buildPrompt({ code, language, interviewMode, focusAreas, customInstructions, contextNotes });
   const providerErrors = [];
 
   try {

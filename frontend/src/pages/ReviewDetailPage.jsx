@@ -127,7 +127,7 @@ export default function ReviewDetailPage() {
               customStyle={{
                 margin: 0,
                 padding: '16px',
-                background: '#090c10',
+                background: '#120d09',
                 fontSize: '12px',
                 lineHeight: '1.7',
                 fontFamily: '"JetBrains Mono", monospace',
@@ -139,6 +139,39 @@ export default function ReviewDetailPage() {
           </div>
         )}
       </div>
+
+      {(review.focusAreas?.length > 0 || review.customInstructions || review.contextNotes) && (
+        <div className="glass-card p-5 space-y-4">
+          <div>
+            <h2 className="font-display font-semibold text-text-primary">Review context</h2>
+            <p className="text-text-secondary text-sm mt-1">Saved review preferences and context used for this run.</p>
+          </div>
+
+          {review.focusAreas?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {review.focusAreas.map((item) => (
+                <span key={item} className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {review.customInstructions && (
+            <div>
+              <div className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">Custom instructions</div>
+              <p className="text-text-secondary text-sm whitespace-pre-wrap">{review.customInstructions}</p>
+            </div>
+          )}
+
+          {review.contextNotes && (
+            <div>
+              <div className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">Project context</div>
+              <p className="text-text-secondary text-sm whitespace-pre-wrap">{review.contextNotes}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Review output */}
       <ReviewOutput review={review} />

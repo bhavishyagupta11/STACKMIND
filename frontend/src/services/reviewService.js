@@ -1,7 +1,21 @@
 import api from './api';
 
-export const submitReview = async ({ code, language, interviewMode }) => {
-  const res = await api.post('/review', { code, language, interviewMode });
+export const submitReview = async ({
+  code,
+  language,
+  interviewMode,
+  focusAreas,
+  customInstructions,
+  contextNotes,
+}) => {
+  const res = await api.post('/review', {
+    code,
+    language,
+    interviewMode,
+    focusAreas,
+    customInstructions,
+    contextNotes,
+  });
   return res.data;
 };
 

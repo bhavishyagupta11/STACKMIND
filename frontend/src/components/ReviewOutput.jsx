@@ -8,11 +8,16 @@ import {
 } from 'lucide-react';
 
 const SECTIONS = [
+  { key: 'summary',               emoji: '🧭', label: 'TL;DR Summary',             icon: Brain,         color: 'amber',  alwaysShow: true },
   { key: 'codeUnderstanding',     emoji: '🧠', label: 'Code Understanding',       icon: Brain,         color: 'cyan',   alwaysShow: true },
+  { key: 'riskHotspots',          emoji: '🔥', label: 'Risk Hotspots',            icon: AlertTriangle, color: 'red',    alwaysShow: true },
   { key: 'bugsIssues',            emoji: '❌', label: 'Bugs / Issues',             icon: Bug,           color: 'red',    alwaysShow: true },
   { key: 'complexity',            emoji: '⚙️', label: 'Time & Space Complexity',   icon: Cpu,           color: 'amber',  alwaysShow: true },
   { key: 'optimizationSuggestions',emoji: '🚀',label: 'Optimization Suggestions', icon: Rocket,        color: 'purple', alwaysShow: true },
   { key: 'codeQuality',           emoji: '🧹', label: 'Code Quality Review',       icon: Sparkles,      color: 'green',  alwaysShow: true },
+  { key: 'testRecommendations',   emoji: '🧪', label: 'Testing Recommendations',  icon: HelpCircle,    color: 'green',  alwaysShow: true },
+  { key: 'conventionsAlignment',  emoji: '📐', label: 'Conventions Alignment',    icon: BarChart3,     color: 'amber',  alwaysShow: true },
+  { key: 'walkthrough',           emoji: '🪜', label: 'Change Walkthrough',       icon: Lightbulb,     color: 'purple', alwaysShow: true },
   { key: 'edgeCases',             emoji: '⚠️', label: 'Edge Cases',                icon: AlertTriangle, color: 'amber',  alwaysShow: true },
   { key: 'improvedCode',          emoji: '💡', label: 'Improved Code',             icon: Lightbulb,     color: 'cyan',   alwaysShow: true, isCode: true },
   { key: 'finalVerdict',          emoji: '📊', label: 'Final Verdict',             icon: BarChart3,     color: 'purple', alwaysShow: true },
@@ -84,7 +89,7 @@ function SectionCard({ section, content, language, interviewMode }) {
                 customStyle={{
                   margin: 0,
                   padding: '16px',
-                  background: '#090c10',
+                  background: '#120d09',
                   fontSize: '12.5px',
                   lineHeight: '1.7',
                   fontFamily: '"JetBrains Mono", monospace',
@@ -108,10 +113,32 @@ function SectionCard({ section, content, language, interviewMode }) {
 export default function ReviewOutput({ review }) {
   if (!review) return null;
 
-  const { response, language, interviewMode, isFallback } = review;
+  const { response, language, interviewMode, isFallback, focusAreas = [], customInstructions, contextNotes } = review;
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {(focusAreas.length > 0 || customInstructions || contextNotes) && (
+        <div className="glass-card p-4">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {focusAreas.map((item) => (
+              <span key={item} className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
+                {item}
+              </span>
+            ))}
+          </div>
+          {customInstructions && (
+            <p className="text-text-secondary text-sm leading-relaxed">
+              <span className="text-text-primary font-display font-medium">Custom instructions:</span> {customInstructions}
+            </p>
+          )}
+          {contextNotes && (
+            <p className="text-text-secondary text-sm leading-relaxed mt-2">
+              <span className="text-text-primary font-display font-medium">Context:</span> {contextNotes}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Fallback warning banner */}
       {isFallback && (
         <div className="flex items-start gap-3 p-4 rounded-xl border border-accent-amber/30 bg-accent-amber/5">
