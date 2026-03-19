@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import {
   Code2, History, LayoutDashboard, LogOut, Menu,
-  ChevronRight, Zap, User, Settings
+  ChevronRight, Zap, User, Settings, PanelLeftClose, PanelLeftOpen, Mail
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,11 +19,40 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef(null);
 
   const handleLogout = () => {
+    setAccountMenuOpen(false);
     logout();
     toast.success('Logged out successfully');
     navigate('/');
+  };
+
+  useEffect(() => {
+    setSidebarOpen(false);
+    setAccountMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => document.removeEventListener('mousedown', handleDocumentClick);
+  }, []);
+
+  const toggleSidebar = () => {
+    if (window.innerWidth >= 1024) {
+      setSidebarCollapsed((prev) => !prev);
+      return;
+    }
+
+    setSidebarOpen((prev) => !prev);
   };
 
   return (
@@ -39,17 +68,21 @@ export default function Layout({ children }) {
       {/* ── Sidebar ── */}
       <aside
         className={`fixed top-0 left-0 h-full w-64 bg-bg-surface border-r border-border z-30
-          flex flex-col transition-transform duration-300 lg:translate-x-0
+          flex flex-col transition-all duration-300 ease-out lg:translate-x-0
+          ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-border">
-          <Link to="/dashboard" className="flex items-center gap-3 group">
+          <Link
+            to="/dashboard"
+            className={`flex items-center group ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
+          >
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-purple
                             flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
               <Zap size={18} className="text-bg-base" />
             </div>
-            <div>
+            <div className={sidebarCollapsed ? 'hidden' : 'block'}>
               <div className="font-display font-bold text-text-primary text-sm leading-none">CodeReview</div>
               <div className="text-accent-cyan text-xs font-mono mt-0.5">AI Assistant</div>
             </div>
@@ -66,69 +99,84 @@ export default function Layout({ children }) {
                 to={path}
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  transition-all duration-150 group
+                  transition-all duration-150 group ${sidebarCollapsed ? 'justify-center' : ''}
                   ${active
                     ? 'bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20'
                     : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
                   }`}
+                title={sidebarCollapsed ? label : undefined}
               >
                 <Icon size={17} className={active ? 'text-accent-cyan' : ''} />
-                <span className="font-display">{label}</span>
-                {active && <ChevronRight size={14} className="ml-auto text-accent-cyan" />}
+                <span className={`font-display ${sidebarCollapsed ? 'hidden' : 'block'}`}>{label}</span>
+                {active && !sidebarCollapsed && <ChevronRight size={14} className="ml-auto text-accent-cyan" />}
               </Link>
             );
           })}
         </nav>
-
-        {/* User footer */}
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-bg-elevated mb-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-purple to-accent-cyan
-                            flex items-center justify-center flex-shrink-0">
-              <User size={14} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-text-primary text-xs font-semibold font-display truncate">{user?.name}</div>
-              <div className="text-text-muted text-xs font-mono truncate">{user?.email}</div>
-            </div>
-          </div>
-          <Link
-            to="/profile"
-            onClick={() => setSidebarOpen(false)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-              text-text-secondary hover:text-accent-cyan hover:bg-accent-cyan/10
-              transition-all duration-150 font-display mb-1"
-          >
-            <Settings size={16} />
-            Edit profile
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-              text-text-secondary hover:text-accent-red hover:bg-accent-red/10
-              transition-all duration-150 font-display"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-        </div>
       </aside>
 
       {/* ── Main content ── */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        {/* Top bar (mobile) */}
-        <header className="lg:hidden sticky top-0 z-10 bg-bg-surface/90 backdrop-blur border-b border-border
-                           flex items-center justify-between px-4 py-3">
-          <button onClick={() => setSidebarOpen(true)} className="text-text-secondary hover:text-text-primary">
-            <Menu size={20} />
-          </button>
-          <div className="flex items-center gap-2">
-            <Zap size={16} className="text-accent-cyan" />
-            <span className="font-display font-bold text-sm text-text-primary">CodeReview AI</span>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-purple to-accent-cyan
-                          flex items-center justify-center">
-            <User size={13} className="text-white" />
+      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+        <header className="sticky top-0 z-10 bg-bg-surface/90 backdrop-blur border-b border-border px-4 lg:px-6 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleSidebar}
+                className="w-10 h-10 rounded-xl border border-border bg-bg-elevated text-text-secondary hover:text-text-primary hover:border-border-bright transition-colors flex items-center justify-center"
+                aria-label="Toggle sidebar"
+              >
+                <span className="hidden lg:block">
+                  {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+                </span>
+                <span className="lg:hidden">
+                  <Menu size={18} />
+                </span>
+              </button>
+
+            </div>
+
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-purple to-accent-cyan flex items-center justify-center shadow-lg shadow-accent-cyan/10 hover:scale-105 transition-transform"
+                aria-label="Open account menu"
+              >
+                <User size={15} className="text-white" />
+              </button>
+
+              {accountMenuOpen && (
+                <div className="absolute right-0 mt-3 w-[290px] glass-card p-3 shadow-2xl shadow-black/30">
+                  <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-bg-overlay border border-border mb-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-purple to-accent-cyan flex items-center justify-center flex-shrink-0">
+                      <User size={16} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-text-primary text-sm font-semibold font-display truncate">{user?.name}</div>
+                      <div className="flex items-center gap-1.5 text-text-muted text-xs font-mono truncate">
+                        <Mail size={12} className="flex-shrink-0" />
+                        <span className="truncate">{user?.email}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-text-secondary hover:text-accent-cyan hover:bg-accent-cyan/10 transition-all duration-150 font-display"
+                  >
+                    <Settings size={16} />
+                    Edit profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-text-secondary hover:text-accent-red hover:bg-accent-red/10 transition-all duration-150 font-display"
+                  >
+                    <LogOut size={16} />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
