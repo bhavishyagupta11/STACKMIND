@@ -9,6 +9,7 @@ import ReviewPage from './pages/ReviewPage';
 import HistoryPage from './pages/HistoryPage';
 import ReviewDetailPage from './pages/ReviewDetailPage';
 import LandingPage from './pages/LandingPage';
+import ProfilePage from './pages/ProfilePage';
 import Layout from './components/Layout';
 
 // Route guard for authenticated pages
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/review" element={<PrivateRoute><Layout><ReviewPage /></Layout></PrivateRoute>} />
           <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />
           <Route path="/history/:id" element={<PrivateRoute><Layout><ReviewDetailPage /></Layout></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />

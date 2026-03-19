@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import {
-  Code2, History, LayoutDashboard, LogOut, Menu, X,
-  ChevronRight, Zap, User
+  Code2, History, LayoutDashboard, LogOut, Menu,
+  ChevronRight, Zap, User, Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/review', label: 'New Review', icon: Code2 },
   { path: '/history', label: 'History', icon: History },
+  { path: '/profile', label: 'Profile', icon: Settings },
 ];
 
 export default function Layout({ children }) {
@@ -91,6 +92,16 @@ export default function Layout({ children }) {
               <div className="text-text-muted text-xs font-mono truncate">{user?.email}</div>
             </div>
           </div>
+          <Link
+            to="/profile"
+            onClick={() => setSidebarOpen(false)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+              text-text-secondary hover:text-accent-cyan hover:bg-accent-cyan/10
+              transition-all duration-150 font-display mb-1"
+          >
+            <Settings size={16} />
+            Edit profile
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm

@@ -84,7 +84,22 @@ ${code}
 \`\`\``;
 };
 
-// ─── Parse Gemini's raw text into structured sections ────────────────────────
+const cleanSectionContent = (content = '') =>
+  content
+    .replace(/^\s*\*\*\s*/gm, '')
+    .replace(/\s*\*\*\s*$/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '')
+    .trim();
+
+const normalizeResponseText = (text = '') =>
+  text
+    .replace(/\r\n/g, '\n')
+    .replace(/^\s{0,3}#{1,6}\s*/gm, '')
+    .replace(/^\s*\*\*(🧠|❌|⚙️|🚀|🧹|⚠️|💡|📊|🎤|❓)/gm, '$1')
+    .replace(/(Understanding|Issues|Complexity|Suggestions|Review|Cases|Code|Verdict|Explanation|Questions)\*\*/g, '$1')
+    .trim();
+
+// ─── Parse Gemini/OpenRouter raw text into structured sections ───────────────
 const parseResponse = (text) => {
   const sections = {
     codeUnderstanding: '',
@@ -98,6 +113,8 @@ const parseResponse = (text) => {
     interviewExplanation: '',
     followUpQuestions: '',
   };
+
+  const normalizedText = normalizeResponseText(text);
 
   // Map emoji headers to section keys
   const sectionMap = [
@@ -117,7 +134,7 @@ const parseResponse = (text) => {
   const positions = [];
   for (const section of sectionMap) {
     for (const marker of section.markers) {
-      const idx = text.indexOf(marker);
+      const idx = normalizedText.indexOf(marker);
       if (idx !== -1) {
         positions.push({ key: section.key, index: idx, marker });
         break;
@@ -131,8 +148,14 @@ const parseResponse = (text) => {
   // Extract content between sections
   for (let i = 0; i < positions.length; i++) {
     const start = positions[i].index + positions[i].marker.length;
-    const end = i + 1 < positions.length ? positions[i + 1].index : text.length;
-    sections[positions[i].key] = text.slice(start, end).trim();
+    const end = i + 1 < positions.length ? positions[i + 1].index : normalizedText.length;
+    sections[positions[i].key] = cleanSectionContent(normalizedText.slice(start, end));
+  }
+
+  const nonEmptySectionCount = Object.values(sections).filter(Boolean).length;
+  if (nonEmptySectionCount < 3) {
+    sections.codeUnderstanding =
+      cleanSectionContent(normalizedText) || 'The AI response could not be split into structured sections.';
   }
 
   return sections;
