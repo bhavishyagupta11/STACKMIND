@@ -141,7 +141,7 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -156,7 +156,7 @@ export default function ReviewPage() {
       </div>
 
       {/* Controls row */}
-      <div className="glass-card p-4 md:p-5 space-y-4">
+      <div className="glass-card p-5 md:p-6 space-y-5">
         <div className="flex flex-wrap items-center gap-3">
           {/* Language selector */}
           <div className="relative">
@@ -173,18 +173,16 @@ export default function ReviewPage() {
           </div>
 
           {/* Tab switcher */}
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex items-center gap-2 rounded-full bg-bg-elevated p-1">
             <button
               onClick={() => setActiveTab('editor')}
-              className={`flex items-center gap-2 px-3 py-2 text-xs font-mono transition-colors
-                ${activeTab === 'editor' ? 'bg-accent-cyan/10 text-accent-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'}`}
+              className={`pill-tab ${activeTab === 'editor' ? 'pill-tab-active' : ''}`}
             >
               <Code2 size={13} /> Editor
             </button>
             <button
               onClick={() => { setActiveTab('upload'); fileRef.current?.click(); }}
-              className={`flex items-center gap-2 px-3 py-2 text-xs font-mono transition-colors border-l border-border
-                ${activeTab === 'upload' ? 'bg-accent-cyan/10 text-accent-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'}`}
+              className={`pill-tab ${activeTab === 'upload' ? 'pill-tab-active' : ''}`}
             >
               <Upload size={13} /> Upload
             </button>
@@ -210,7 +208,7 @@ export default function ReviewPage() {
           {/* Interview mode toggle */}
           <button
             onClick={() => setInterviewMode(!interviewMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-medium border transition-all duration-200
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-medium border transition-all duration-200
               ${interviewMode
                 ? 'bg-accent-pink/10 text-accent-pink border-accent-pink/30'
                 : 'bg-bg-overlay text-text-secondary border-border hover:border-border-bright'
@@ -218,7 +216,7 @@ export default function ReviewPage() {
           >
             {interviewMode ? <Mic size={13} /> : <MicOff size={13} />}
             Interview Mode
-            <span className={`w-6 h-3.5 rounded-full relative flex-shrink-0 transition-colors ${interviewMode ? 'bg-accent-pink' : 'bg-bg-overlay border border-border-bright'}`}>
+            <span className={`w-6 h-3.5 rounded-full relative flex-shrink-0 transition-colors ${interviewMode ? 'bg-accent-pink' : 'bg-bg-surface border border-border-bright'}`}>
               <span className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white transition-all duration-200 ${interviewMode ? 'left-3' : 'left-0.5'}`} />
             </span>
           </button>
@@ -249,7 +247,7 @@ export default function ReviewPage() {
         )}
 
         <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <div className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">Focus areas</div>
               <div className="flex flex-wrap gap-2">
@@ -260,10 +258,10 @@ export default function ReviewPage() {
                       key={value}
                       type="button"
                       onClick={() => toggleFocusArea(value)}
-                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-mono transition-colors ${
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs font-mono transition-colors ${
                         active
-                          ? 'border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan'
-                          : 'border-border bg-bg-overlay text-text-secondary hover:text-text-primary'
+                          ? 'border-[#f4d4a0] bg-[#fff4df] text-accent-amber'
+                          : 'border-border bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
                       }`}
                     >
                       <Icon size={13} />
@@ -292,7 +290,7 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <label className="block text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">
                 Project context
@@ -310,7 +308,7 @@ export default function ReviewPage() {
               </div>
             </div>
 
-            <label className="flex items-center gap-3 rounded-lg border border-border bg-bg-overlay px-3 py-3 cursor-pointer">
+            <label className="flex items-center gap-3 rounded-2xl border border-border bg-[#fcfaf6] px-4 py-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={savePreferences}

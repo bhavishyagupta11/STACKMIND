@@ -33,13 +33,13 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center px-4">
-      <div className="fixed top-1/3 right-1/4 w-[400px] h-[400px] bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed top-1/3 right-1/4 w-[400px] h-[400px] bg-accent-amber/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-6 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Zap size={20} className="text-bg-base" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-amber to-[#ffbf66] flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_10px_24px_rgba(255,161,22,0.20)]">
+              <Zap size={20} className="text-white" />
             </div>
             <span className="font-display font-bold text-lg text-text-primary">STACKMIND</span>
           </Link>
@@ -117,7 +117,7 @@ export default function SignupPage() {
 
         <p className="text-center text-text-secondary text-sm mt-5">
           Already have an account?{' '}
-          <Link to="/login" className="text-accent-cyan hover:underline font-medium">Sign in</Link>
+          <Link to="/login" className="text-accent-amber hover:underline font-medium">Sign in</Link>
         </p>
       </div>
     </div>

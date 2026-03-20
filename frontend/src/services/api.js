@@ -22,8 +22,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    // Auto-logout on 401
-    if (err.response?.status === 401 && !err.config?.skipAuthRedirect) {
+    const hasStoredToken = Boolean(localStorage.getItem('token'));
+
+    // Auto-logout only for authenticated requests, not login/signup failures.
+    if (err.response?.status === 401 && hasStoredToken && !err.config?.skipAuthRedirect) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

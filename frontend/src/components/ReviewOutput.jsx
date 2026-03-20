@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
   Brain, Bug, Cpu, Rocket, Sparkles, AlertTriangle,
   Lightbulb, BarChart3, Mic, HelpCircle, Copy, Check,
@@ -129,14 +129,14 @@ function SectionCard({ section, content, language, interviewMode, isOpen, onTogg
       {isOpen && (
         <div className="px-5 pb-5">
           {section.isCode ? (
-            <div className="rounded-lg overflow-hidden border border-border">
+            <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8]">
               <SyntaxHighlighter
                 language={language || 'javascript'}
-                style={vscDarkPlus}
+                style={oneLight}
                 customStyle={{
                   margin: 0,
                   padding: '16px',
-                  background: '#120d09',
+                  background: '#fcfbf8',
                   fontSize: '12.5px',
                   lineHeight: '1.7',
                   fontFamily: '"JetBrains Mono", monospace',

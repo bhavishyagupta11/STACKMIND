@@ -93,14 +93,14 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
       <section className="relative overflow-hidden glass-card p-6 lg:p-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-purple/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-amber/12 via-transparent to-accent-cyan/10 pointer-events-none" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center shadow-lg shadow-accent-cyan/10">
-              <User size={24} className="text-bg-base" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-amber to-[#ffbf66] flex items-center justify-center shadow-[0_12px_28px_rgba(255,161,22,0.20)]">
+              <User size={24} className="text-white" />
             </div>
             <div>
-              <div className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 mb-3">
+              <div className="badge bg-accent-amber/10 text-accent-amber border border-accent-amber/20 mb-3">
                 <Sparkles size={12} />
                 Account Center
               </div>

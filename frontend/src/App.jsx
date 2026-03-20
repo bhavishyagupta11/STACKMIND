@@ -53,14 +53,14 @@ export default function App() {
           position="top-right"
           toastOptions={{
             style: {
-              background: '#161b22',
-              color: '#e6edf3',
-              border: '1px solid #21262d',
+              background: '#fffdf9',
+              color: '#262626',
+              border: '1px solid #e4ded4',
               fontFamily: '"DM Sans", sans-serif',
               fontSize: '14px',
             },
-            success: { iconTheme: { primary: '#10b981', secondary: '#161b22' } },
-            error: { iconTheme: { primary: '#ef4444', secondary: '#161b22' } },
+            success: { iconTheme: { primary: '#00af9b', secondary: '#fffdf9' } },
+            error: { iconTheme: { primary: '#ff5c5c', secondary: '#fffdf9' } },
           }}
         />
         <Suspense fallback={<AppLoader />}>

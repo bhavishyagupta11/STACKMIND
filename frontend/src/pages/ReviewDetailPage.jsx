@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getReviewById, deleteReview } from '../services/reviewService';
 import ReviewOutput from '../components/ReviewOutput';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ArrowLeft, Clock, Code2, Mic, Trash2, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -122,12 +122,12 @@ export default function ReviewDetailPage() {
             </div>
             <SyntaxHighlighter
               language={review.language}
-              style={vscDarkPlus}
+              style={oneLight}
               showLineNumbers
               customStyle={{
                 margin: 0,
                 padding: '16px',
-                background: '#120d09',
+                background: '#fcfbf8',
                 fontSize: '12px',
                 lineHeight: '1.7',
                 fontFamily: '"JetBrains Mono", monospace',

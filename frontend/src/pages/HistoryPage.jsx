@@ -40,7 +40,7 @@ function ReviewCard({ review, onDelete }) {
       to={`/history/${review._id}`}
       className="glass-card-hover p-5 flex items-start gap-4 group animate-slide-up"
     >
-      <div className="w-10 h-10 rounded-lg bg-bg-overlay border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
+      <div className="w-10 h-10 rounded-xl bg-bg-elevated border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
         <Code2 size={17} className="text-text-secondary" />
       </div>
 
@@ -85,7 +85,7 @@ function ReviewCard({ review, onDelete }) {
         >
           {deleting ? <div className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin" /> : <Trash2 size={14} />}
         </button>
-        <ArrowRight size={14} className="text-text-muted group-hover:text-accent-cyan transition-colors" />
+        <ArrowRight size={14} className="text-text-muted group-hover:text-accent-amber transition-colors" />
       </div>
     </Link>
   );
@@ -127,7 +127,7 @@ export default function HistoryPage() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -140,14 +140,16 @@ export default function HistoryPage() {
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by title or language..."
-          className="input-field pl-10"
-        />
+      <div className="glass-card p-3">
+        <div className="relative">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title or language..."
+            className="input-field pl-10"
+          />
+        </div>
       </div>
 
       {/* List */}

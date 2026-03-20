@@ -21,43 +21,42 @@ const EDITOR_OPTIONS = {
     verticalScrollbarSize: 6,
     horizontalScrollbarSize: 6,
   },
-  theme: 'vs-dark',
+  theme: 'stackmind-light',
 };
 
 export default function CodeEditor({ code, onChange, language }) {
   const monacoLang = getMonacoLanguage(language);
 
   const handleEditorMount = (editor, monaco) => {
-    // Define custom dark theme matching our design
-    monaco.editor.defineTheme('stackmind-dark', {
-      base: 'vs-dark',
+    monaco.editor.defineTheme('stackmind-light', {
+      base: 'vs',
       inherit: true,
       rules: [
-        { token: 'comment', foreground: '484f58', fontStyle: 'italic' },
-        { token: 'keyword', foreground: 'ff7b72' },
-        { token: 'string', foreground: 'a5d6ff' },
-        { token: 'number', foreground: 'f2cc60' },
-        { token: 'type', foreground: 'ffa657' },
-        { token: 'function', foreground: 'd2a8ff' },
-        { token: 'variable', foreground: 'e6edf3' },
+        { token: 'comment', foreground: '8b8175', fontStyle: 'italic' },
+        { token: 'keyword', foreground: 'cc7a00' },
+        { token: 'string', foreground: '0f8a7b' },
+        { token: 'number', foreground: 'b85c38' },
+        { token: 'type', foreground: '1a8cff' },
+        { token: 'function', foreground: '7a5af8' },
+        { token: 'variable', foreground: '262626' },
       ],
       colors: {
-        'editor.background': '#0f1318',
-        'editor.foreground': '#e6edf3',
-        'editorLineNumber.foreground': '#484f58',
-        'editorLineNumber.activeForeground': '#8b949e',
-        'editor.lineHighlightBackground': '#161b22',
-        'editor.selectionBackground': '#264f78',
-        'editor.inactiveSelectionBackground': '#1c232c',
-        'editorCursor.foreground': '#00d4ff',
-        'editorWhitespace.foreground': '#21262d',
-        'editorIndentGuide.background': '#21262d',
-        'editorIndentGuide.activeBackground': '#30363d',
-        'scrollbarSlider.background': '#30363d80',
-        'scrollbarSlider.hoverBackground': '#484f5880',
+        'editor.background': '#fcfbf8',
+        'editor.foreground': '#262626',
+        'editorLineNumber.foreground': '#b1a392',
+        'editorLineNumber.activeForeground': '#7b6d5d',
+        'editor.lineHighlightBackground': '#f5efe6',
+        'editor.selectionBackground': '#ffe4b5',
+        'editor.inactiveSelectionBackground': '#f1eadf',
+        'editorCursor.foreground': '#ffa116',
+        'editorWhitespace.foreground': '#e4ded4',
+        'editorIndentGuide.background': '#ece4d9',
+        'editorIndentGuide.activeBackground': '#d4c6b4',
+        'scrollbarSlider.background': '#d4c6b480',
+        'scrollbarSlider.hoverBackground': '#c4b29d80',
       },
     });
-    monaco.editor.setTheme('stackmind-dark');
+    monaco.editor.setTheme('stackmind-light');
   };
 
   return (

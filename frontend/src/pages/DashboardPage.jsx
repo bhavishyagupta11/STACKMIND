@@ -12,11 +12,11 @@ function StatCard({ icon: Icon, label, value, color }) {
   };
   return (
     <div className="glass-card p-5">
-      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center mb-3 ${colors[color]}`}>
+      <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-4 ${colors[color]}`}>
         <Icon size={18} />
       </div>
       <div className="text-2xl font-display font-bold text-text-primary">{value}</div>
-      <div className="text-text-secondary text-xs font-mono mt-0.5">{label}</div>
+      <div className="text-text-secondary text-xs font-mono mt-1">{label}</div>
     </div>
   );
 }
@@ -30,7 +30,7 @@ function RecentReviewCard({ review }) {
 
   return (
     <Link to={`/history/${review._id}`} className="glass-card-hover p-4 flex items-center gap-4 group">
-      <div className="w-9 h-9 rounded-lg bg-bg-overlay border border-border flex items-center justify-center flex-shrink-0">
+      <div className="w-10 h-10 rounded-xl bg-bg-elevated border border-border flex items-center justify-center flex-shrink-0">
         <Code2 size={16} className={color} />
       </div>
       <div className="flex-1 min-w-0">
@@ -48,7 +48,7 @@ function RecentReviewCard({ review }) {
         <Clock size={11} />
         {new Date(review.createdAt).toLocaleDateString()}
       </div>
-      <ArrowRight size={14} className="text-text-muted group-hover:text-accent-cyan transition-colors" />
+      <ArrowRight size={14} className="text-text-muted group-hover:text-accent-amber transition-colors" />
     </Link>
   );
 }
@@ -77,7 +77,7 @@ export default function DashboardPage() {
   const interviewCount = recent.filter((r) => r.interviewMode).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
       {/* Header */}
       <div>
         <h1 className="font-display font-bold text-2xl text-text-primary">
@@ -97,22 +97,22 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link to="/review" className="glass-card-hover p-6 group">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-cyan/20 to-accent-cyan/5
-                            border border-accent-cyan/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Code2 size={22} className="text-accent-cyan" />
+            <div className="w-12 h-12 rounded-2xl bg-[#fff4df]
+                            border border-[#f4d4a0] flex items-center justify-center transition-transform">
+              <Code2 size={22} className="text-accent-amber" />
             </div>
             <div>
               <div className="font-display font-semibold text-text-primary">New Code Review</div>
               <div className="text-text-secondary text-xs mt-0.5">Paste or upload code for AI analysis</div>
             </div>
-            <ArrowRight size={16} className="ml-auto text-text-muted group-hover:text-accent-cyan transition-colors" />
+            <ArrowRight size={16} className="ml-auto text-text-muted group-hover:text-accent-amber transition-colors" />
           </div>
         </Link>
 
         <Link to="/history" className="glass-card-hover p-6 group">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-purple/20 to-accent-purple/5
-                            border border-accent-purple/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-2xl bg-[#f3f2ff]
+                            border border-[#d8d1ff] flex items-center justify-center transition-transform">
               <History size={22} className="text-accent-purple" />
             </div>
             <div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-semibold text-text-primary">Recent Reviews</h2>
           {total > 5 && (
-            <Link to="/history" className="text-accent-cyan text-xs font-mono hover:underline">
+            <Link to="/history" className="text-accent-amber text-xs font-mono hover:underline">
               View all →
             </Link>
           )}
