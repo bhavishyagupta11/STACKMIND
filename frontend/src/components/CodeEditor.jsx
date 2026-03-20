@@ -29,7 +29,7 @@ export default function CodeEditor({ code, onChange, language }) {
 
   const handleEditorMount = (editor, monaco) => {
     // Define custom dark theme matching our design
-    monaco.editor.defineTheme('codereview-dark', {
+    monaco.editor.defineTheme('stackmind-dark', {
       base: 'vs-dark',
       inherit: true,
       rules: [
@@ -57,7 +57,7 @@ export default function CodeEditor({ code, onChange, language }) {
         'scrollbarSlider.hoverBackground': '#484f5880',
       },
     });
-    monaco.editor.setTheme('codereview-dark');
+    monaco.editor.setTheme('stackmind-dark');
   };
 
   return (

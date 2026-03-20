@@ -36,7 +36,7 @@ export default function LandingPage() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center">
             <Zap size={16} className="text-bg-base" />
           </div>
-          <span className="font-display font-bold text-text-primary">CodeReview AI</span>
+          <span className="font-display font-bold text-text-primary">STACKMIND</span>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/login" className="btn-ghost text-sm">Sign in</Link>
@@ -57,7 +57,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-text-secondary text-lg md:text-xl max-w-2xl mx-auto mb-10 font-body leading-relaxed">
-          A warmer, faster AI code review workspace with customizable instructions,
+          STACKMIND is a warmer, faster AI code review workspace with customizable instructions,
           risk summaries, change walkthroughs, and saved review preferences.
         </p>
 
@@ -103,7 +103,7 @@ export default function LandingPage() {
       <section className="relative z-10 max-w-3xl mx-auto px-6 pb-24 text-center">
         <div className="glass-card p-10 glow-cyan">
           <h2 className="font-display font-bold text-3xl text-text-primary mb-4">Ready to review your code?</h2>
-          <p className="text-text-secondary mb-8 font-body">Create a free account and get your first AI code review in under 30 seconds.</p>
+          <p className="text-text-secondary mb-8 font-body">Create a free account and get your first STACKMIND review in under 30 seconds.</p>
           <Link to="/signup" className="btn-primary text-base px-10 py-3">
             Create free account <ArrowRight size={18} />
           </Link>

@@ -1,7 +1,7 @@
 {
-  "name": "ai-code-review-assistant",
+  "name": "stackmind",
   "version": "1.0.0",
-  "description": "AI-powered Code Review Assistant — Full Stack",
+  "description": "STACKMIND - AI-powered full-stack code review workspace",
   "private": true,
   "scripts": {
     "install:all": "cd backend && npm install && cd ../frontend && npm install",

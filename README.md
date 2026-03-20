@@ -1,6 +1,6 @@
-# 🤖 AI Code Review Assistant
+# STACKMIND
 
-A production-quality, full-stack web application that provides AI-powered code reviews using Google Gemini. Built with React (Vite), Node.js/Express, MongoDB, and Tailwind CSS.
+A production-quality, full-stack web application for AI-powered code reviews under the STACKMIND brand. Built with React (Vite), Node.js/Express, MongoDB, and Tailwind CSS.
 
 ---
 
@@ -20,7 +20,7 @@ A production-quality, full-stack web application that provides AI-powered code r
 ## 🗂️ Project Structure
 
 ```
-ai-code-review/
+stackmind/
 ├── backend/
 │   ├── controllers/
 │   │   ├── authController.js       # Signup, Login, GetMe
@@ -88,7 +88,7 @@ ai-code-review/
 ### Step 1 — Clone / Extract the project
 
 ```bash
-cd ai-code-review
+cd stackmind
 ```
 
 ---
@@ -104,7 +104,7 @@ Edit `.env`:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/ai-code-review
+MONGODB_URI=mongodb://localhost:27017/stackmind
 JWT_SECRET=replace_with_a_long_random_string_at_least_32_chars
 JWT_EXPIRE=7d
 GEMINI_API_KEY=your_key_from_aistudio_google_com

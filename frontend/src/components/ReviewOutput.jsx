@@ -43,6 +43,8 @@ const normalizeDisplayText = (text = '') =>
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/^\s*[*-]\s+/gm, '')
+    .replace(/^\s*[:;,.]+\s*$/gm, '')
+    .replace(/^\s*[:;]\s+/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 

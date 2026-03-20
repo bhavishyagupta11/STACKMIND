@@ -1,7 +1,7 @@
 {
-  "name": "ai-code-review-backend",
+  "name": "stackmind-backend",
   "version": "1.0.0",
-  "description": "AI Code Review Assistant - Backend API",
+  "description": "STACKMIND backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

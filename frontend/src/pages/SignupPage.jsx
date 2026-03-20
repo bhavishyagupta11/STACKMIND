@@ -41,10 +41,10 @@ export default function SignupPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center group-hover:scale-105 transition-transform">
               <Zap size={20} className="text-bg-base" />
             </div>
-            <span className="font-display font-bold text-lg text-text-primary">CodeReview AI</span>
+            <span className="font-display font-bold text-lg text-text-primary">STACKMIND</span>
           </Link>
           <h1 className="font-display font-bold text-2xl text-text-primary">Create your account</h1>
-          <p className="text-text-secondary text-sm mt-1.5">Start reviewing code with AI today</p>
+          <p className="text-text-secondary text-sm mt-1.5">Start reviewing code with STACKMIND today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5">

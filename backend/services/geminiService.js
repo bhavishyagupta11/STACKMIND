@@ -110,6 +110,8 @@ const cleanSectionContent = (content = '') =>
     .replace(/__([^_]+)__/g, '$1')
     .replace(/^\s*[-*]\s+/gm, '')
     .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/^\s*[:;,.]+\s*$/gm, '')
+    .replace(/^\s*[:;]\s+/gm, '')
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/\n{3,}/g, '\n\n')
@@ -257,7 +259,7 @@ const callOpenRouter = async (prompt) => {
           Authorization: `Bearer ${openRouterApiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
-          'X-Title': 'AI Code Review Assistant',
+          'X-Title': 'STACKMIND',
         },
         body: JSON.stringify({
           model: DEFAULT_OPENROUTER_MODEL,

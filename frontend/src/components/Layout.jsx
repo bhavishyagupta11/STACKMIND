@@ -82,8 +82,8 @@ export default function Layout({ children }) {
               <Zap size={18} className="text-bg-base" />
             </div>
             <div className={sidebarCollapsed ? 'hidden' : 'block'}>
-              <div className="font-display font-bold text-text-primary text-sm leading-none">CodeReview</div>
-              <div className="text-accent-cyan text-xs font-mono mt-0.5">AI Assistant</div>
+              <div className="font-display font-bold text-text-primary text-sm leading-none">STACKMIND</div>
+              <div className="text-accent-cyan text-xs font-mono mt-0.5">Code Intelligence</div>
             </div>
           </Link>
         </div>

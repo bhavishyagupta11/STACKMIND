@@ -42,7 +42,7 @@ app.use('/api/history', historyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'AI Code Review API is running 🚀', timestamp: new Date() });
+  res.json({ success: true, message: 'STACKMIND API is running 🚀', timestamp: new Date() });
 });
 
 // ─── Error Handler ────────────────────────────────────────────────────────────

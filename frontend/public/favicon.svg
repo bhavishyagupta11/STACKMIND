@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="STACKMIND favicon">
+  <defs>
+    <linearGradient id="stackmind-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00d4ff" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="#0f1318" />
+  <path d="M21 20h22v6H29v4h12c5 0 8 2.8 8 7.2S46 45 41 45H19v-6h21c1.9 0 3-.8 3-2.2S41.9 34 40 34H28c-5 0-8-2.8-8-7s3.1-7 8-7Z" fill="url(#stackmind-gradient)" />
+  <path d="M18 48 32 16l14 32h-7l-7-17-7 17Z" fill="url(#stackmind-gradient)" opacity=".9" />
+</svg>
