@@ -9,5 +9,8 @@
     "dev:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && npm start",
     "build:frontend": "cd frontend && npm run build"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
   }
 }
