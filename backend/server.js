@@ -1,9 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const reviewRoutes = require('./routes/review');
@@ -50,9 +50,15 @@ app.use(errorHandler);
 
 // ─── Database + Server Start ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ Missing MONGODB_URI in environment variables. Add it to backend/.env locally.');
+  process.exit(1);
+}
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(MONGODB_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
     app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
