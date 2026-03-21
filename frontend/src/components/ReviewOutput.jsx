@@ -4,8 +4,9 @@ import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
   Brain, Bug, Cpu, Rocket, Sparkles, AlertTriangle,
   Lightbulb, BarChart3, Mic, HelpCircle, Copy, Check,
-  AlertCircle, ChevronDown, ChevronUp
+  AlertCircle, ArrowLeft, ArrowRight
 } from 'lucide-react';
+import ComplexityVisualizer from './ComplexityVisualizer';
 
 const SECTIONS = [
   { key: 'summary',               emoji: '🧭', label: 'TL;DR Summary',             icon: Brain,         color: 'amber',  alwaysShow: true },
@@ -97,9 +98,8 @@ function CopyButton({ text }) {
   );
 }
 
-function SectionCard({ section, content, language, interviewMode, isOpen, onToggle }) {
+function SectionCard({ section, content, language, interviewMode }) {
   const colors = COLOR_MAP[section.color] || COLOR_MAP.cyan;
-  const Icon = section.icon;
 
   // Skip interview sections when not in interview mode
   if (!section.alwaysShow && !interviewMode) return null;
@@ -108,49 +108,55 @@ function SectionCard({ section, content, language, interviewMode, isOpen, onTogg
 
   return (
     <div className={`rounded-xl border ${colors.border} ${colors.bg} overflow-hidden animate-slide-up`}>
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-3.5 cursor-pointer select-none"
-        onClick={onToggle}
-      >
+      <div className="flex items-center justify-between px-5 py-3.5 select-none border-b border-current/10">
         <div className="flex items-center gap-3">
           <span className="text-lg leading-none">{section.emoji}</span>
           <h3 className={`font-display font-semibold text-sm ${colors.text}`}>
             {section.label}
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          {section.isCode && isOpen && <CopyButton text={content} />}
-          {isOpen ? <ChevronUp size={15} className="text-text-muted" /> : <ChevronDown size={15} className="text-text-muted" />}
-        </div>
+        {section.isCode && <CopyButton text={content} />}
       </div>
 
-      {/* Body */}
-      {isOpen && (
-        <div className="px-5 pb-5">
-          {section.isCode ? (
-            <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8]">
-              <SyntaxHighlighter
-                language={language || 'javascript'}
-                style={oneLight}
-                customStyle={{
-                  margin: 0,
-                  padding: '16px',
-                  background: '#fcfbf8',
-                  fontSize: '12.5px',
-                  lineHeight: '1.7',
-                  fontFamily: '"JetBrains Mono", monospace',
-                }}
-                showLineNumbers
-              >
-                {normalizeDisplayText(content)}
-              </SyntaxHighlighter>
-            </div>
-          ) : (
-            <FormattedText content={content} />
-          )}
-        </div>
-      )}
+      <div className="px-5 py-5">
+        {section.isCode ? (
+          <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8]">
+            <SyntaxHighlighter
+              language={language || 'javascript'}
+              style={oneLight}
+              customStyle={{
+                margin: 0,
+                padding: '16px',
+                background: '#fcfbf8',
+                fontSize: '12.5px',
+                lineHeight: '1.7',
+                fontFamily: '"JetBrains Mono", monospace',
+              }}
+              showLineNumbers
+            >
+              {normalizeDisplayText(content)}
+            </SyntaxHighlighter>
+          </div>
+        ) : (
+          <FormattedText content={content} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OverviewCard({ label, value, accent }) {
+  const palette = {
+    amber: 'border-accent-amber/20 bg-accent-amber/5 text-accent-amber',
+    cyan: 'border-accent-cyan/20 bg-accent-cyan/5 text-accent-cyan',
+    red: 'border-accent-red/20 bg-accent-red/5 text-accent-red',
+    purple: 'border-accent-purple/20 bg-accent-purple/5 text-accent-purple',
+  };
+
+  return (
+    <div className={`rounded-2xl border p-4 ${palette[accent] || palette.amber}`}>
+      <div className="text-[11px] font-mono uppercase tracking-[0.18em] opacity-80">{label}</div>
+      <div className="mt-2 text-sm leading-6 text-text-primary">{value}</div>
     </div>
   );
 }
@@ -164,11 +170,19 @@ export default function ReviewOutput({ review }) {
     return Boolean(response?.[section.key]?.trim());
   });
   const firstOpenSection = visibleSections[0]?.key || null;
-  const [openSection, setOpenSection] = useState(firstOpenSection);
+  const [activeSection, setActiveSection] = useState(firstOpenSection);
 
   useEffect(() => {
-    setOpenSection(firstOpenSection);
+    setActiveSection(firstOpenSection);
   }, [firstOpenSection, review]);
+
+  const activeIndex = visibleSections.findIndex((section) => section.key === activeSection);
+  const currentSection = visibleSections[activeIndex] || null;
+  const summaryText = response?.summary?.trim() || 'Review generated successfully.';
+  const verdictText = response?.finalVerdict?.trim() || 'Final verdict not available.';
+  const bugText = response?.bugsIssues?.trim() || 'No major bug notes were included in this review.';
+  const trimmedBugPreview = bugText.split('\n')[0];
+  const trimmedVerdictPreview = verdictText.split('\n')[0];
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -208,18 +222,87 @@ export default function ReviewOutput({ review }) {
         </div>
       )}
 
-      {/* Section cards */}
-      {visibleSections.map((section) => (
-        <SectionCard
-          key={section.key}
-          section={section}
-          content={response[section.key]}
-          language={language}
-          interviewMode={interviewMode}
-          isOpen={openSection === section.key}
-          onToggle={() => setOpenSection((current) => current === section.key ? null : section.key)}
+      {response?.complexity?.trim() && (
+        <ComplexityVisualizer
+          complexityText={response.complexity}
+          optimizationText={response.optimizationSuggestions}
+          code={review.code}
         />
-      ))}
+      )}
+
+      <div className="glass-card p-5 md:p-6 space-y-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-text-muted">Guided Review</div>
+            <h3 className="mt-2 font-display font-bold text-xl text-text-primary">One focused answer at a time</h3>
+            <p className="mt-2 text-sm text-text-secondary max-w-2xl">
+              Use the section chips below to move through the review without getting stuck in one huge wall of content.
+            </p>
+          </div>
+          <div className="badge bg-bg-elevated border border-border text-text-secondary">
+            {activeIndex + 1} of {visibleSections.length}
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <OverviewCard label="TL;DR" value={summaryText.split('\n')[0]} accent="amber" />
+          <OverviewCard label="Top Risk" value={trimmedBugPreview} accent="red" />
+          <OverviewCard label="Verdict" value={trimmedVerdictPreview} accent="purple" />
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {visibleSections.map((section) => {
+            const active = section.key === activeSection;
+            return (
+              <button
+                key={section.key}
+                type="button"
+                onClick={() => setActiveSection(section.key)}
+                className={`shrink-0 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+                  active
+                    ? 'border-[#f4d4a0] bg-[#fff4df] text-accent-amber'
+                    : 'border-border bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
+                }`}
+              >
+                <span>{section.emoji}</span>
+                <span className="font-display">{section.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {currentSection && (
+          <SectionCard
+            section={currentSection}
+            content={response[currentSection.key]}
+            language={language}
+            interviewMode={interviewMode}
+          />
+        )}
+
+        {visibleSections.length > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => setActiveSection(visibleSections[Math.max(0, activeIndex - 1)].key)}
+              disabled={activeIndex <= 0}
+              className="btn-secondary text-sm gap-2 disabled:opacity-50"
+            >
+              <ArrowLeft size={15} />
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection(visibleSections[Math.min(visibleSections.length - 1, activeIndex + 1)].key)}
+              disabled={activeIndex === -1 || activeIndex >= visibleSections.length - 1}
+              className="btn-primary text-sm gap-2"
+            >
+              Next
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
