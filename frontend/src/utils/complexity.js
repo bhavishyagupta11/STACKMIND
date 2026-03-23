@@ -85,19 +85,46 @@ const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const normalizeText = (text = '') => text.toLowerCase().replace(/\s+/g, ' ').trim();
 
-const getPresetForExpression = (expression = '') => {
-  const normalized = normalizeText(expression);
-  return (
-    COMPLEXITY_PRESETS.find((preset) =>
-      preset.aliases.some((alias) => normalized.includes(alias))
-    ) || null
-  );
-};
-
 const fallbackPreset = COMPLEXITY_PRESETS[2];
 
 const getPresetByKey = (key = '') =>
   COMPLEXITY_PRESETS.find((preset) => preset.key === key) || null;
+
+const getPresetForExpression = (expression = '') => {
+  const normalized = normalizeText(expression);
+  
+  const preset = COMPLEXITY_PRESETS.find((preset) =>
+    preset.aliases.some((alias) => normalized.includes(alias))
+  );
+  if (preset) return preset;
+
+  if (/o\([^)]*\^3[^)]*\)/.test(normalized) || /o\([^)]*³[^)]*\)/.test(normalized) || /\bcubic\b/.test(normalized)) {
+    return getPresetByKey('O(n^3)');
+  }
+  if (/o\([^)]*\^2[^)]*\)/.test(normalized) || /o\([^)]*²[^)]*\)/.test(normalized) || /\bquadratic\b/.test(normalized) || /o\([^)]*[a-z]\s*\*\s*[a-z][^)]*\)/.test(normalized)) {
+    return getPresetByKey('O(n^2)');
+  }
+  if (/o\([^)]*[a-z]\s*log\s*[a-z][^)]*\)/.test(normalized) || /\blinearithmic\b/.test(normalized)) {
+    return getPresetByKey('O(n log n)');
+  }
+  if (/o\([^)]*log\s*[a-z][^)]*\)/.test(normalized) || /\blogarithmic\b/.test(normalized)) {
+    return getPresetByKey('O(log n)');
+  }
+  if (/o\([^)]*2\^[a-z][^)]*\)/.test(normalized) || /\bexponential\b/.test(normalized)) {
+    return getPresetByKey('O(2^n)');
+  }
+  if (/o\([^)]*[a-z]![^)]*\)/.test(normalized) || /\bfactorial\b/.test(normalized)) {
+    return getPresetByKey('O(n!)');
+  }
+  if (/o\([^)]*[a-z](?:\s*\+\s*[a-z])?[^)]*\)/.test(normalized) || /\blinear\b/.test(normalized)) {
+    return getPresetByKey('O(n)');
+  }
+  if (/\bconstant\b/.test(normalized)) {
+    return getPresetByKey('O(1)');
+  }
+
+  return null;
+};
 
 const extractExpressionByLabel = (text, label) => {
   const regex = new RegExp(`${label}\\s*[:\\-]\\s*([^\\n]+)`, 'i');
@@ -115,15 +142,24 @@ const extractCandidateExpressions = (text = '') => {
 const parseComplexityDimension = (text, type) => {
   const labeled = extractExpressionByLabel(text, type === 'time' ? 'time complexity' : 'space complexity');
   const candidates = extractCandidateExpressions(text);
-  const expression =
+  const rawExpression =
     labeled ||
     (type === 'time' ? candidates[0] : candidates[1]) ||
     candidates[0] ||
     fallbackPreset.key;
-  const preset = getPresetForExpression(expression) || fallbackPreset;
+  const preset = getPresetForExpression(rawExpression) || fallbackPreset;
+
+  let displayExpression = rawExpression;
+  let bigOMatch = String(rawExpression).match(/O\([^)]+\)/i);
+  if (bigOMatch) {
+    displayExpression = bigOMatch[0];
+  } else if (displayExpression.length > 20 || !/^O\(/i.test(displayExpression)) {
+    displayExpression = preset.key;
+  }
 
   return {
-    expression: preset.key,
+    key: preset.key,
+    expression: displayExpression,
     score: preset.score,
     label: preset.label,
     description: preset.description,
@@ -188,7 +224,7 @@ const getHeadline = (timeScore, spaceScore, signals) => {
 
 const inferOptimizationTarget = (optimizationText, currentTime) => {
   const normalized = normalizeText(optimizationText);
-  const currentPreset = getPresetByKey(currentTime.expression) || fallbackPreset;
+  const currentPreset = getPresetByKey(currentTime.key) || fallbackPreset;
 
   if (!normalized) {
     return currentPreset.score > 3 ? COMPLEXITY_PRESETS[currentPreset.score - 2] || currentPreset : null;

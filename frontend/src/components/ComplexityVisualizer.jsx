@@ -313,7 +313,7 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
 
 export default function ComplexityVisualizer({ complexityText, optimizationText, code }) {
   const insights = parseComplexityInsights({ complexityText, optimizationText, code });
-  const currentPreset = COMPLEXITY_PRESETS.find((item) => item.key === insights.time.expression) || COMPLEXITY_PRESETS[2];
+  const currentPreset = COMPLEXITY_PRESETS.find((item) => item.key === insights.time.key) || COMPLEXITY_PRESETS[2];
   const targetPreset =
     insights.optimizationTarget &&
     COMPLEXITY_PRESETS.find((item) => item.key === insights.optimizationTarget.key);
