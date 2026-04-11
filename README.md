@@ -124,6 +124,12 @@ npm start        # Production
 
 Backend runs on: **http://localhost:5000**
 
+You can also start both services together from the repo root:
+
+```bash
+npm run dev:all
+```
+
 ---
 
 ### Step 3 — Configure the Frontend
@@ -162,6 +168,74 @@ Navigate to **http://localhost:5173** in your browser.
 6. Click **Analyze Code**
 
 ---
+
+## 🚀 Deployment
+
+### Recommended setup: Vercel frontend + Render backend + MongoDB Atlas
+
+This is the safest production setup for STACKMIND because the frontend and backend can scale independently.
+
+#### 1) Deploy MongoDB
+
+Use MongoDB Atlas and copy your connection string into the backend environment.
+
+#### 2) Deploy the backend on Render
+
+Set the root directory to `backend` and use:
+
+- Build command: `npm install`
+- Start command: `npm start`
+
+Add these environment variables in Render:
+
+```env
+PORT=10000
+MONGODB_URI=your_mongodb_atlas_uri
+JWT_SECRET=your_long_random_secret
+JWT_EXPIRE=7d
+GEMINI_API_KEY=your_gemini_api_key
+OPENROUTER_API_KEY=your_openrouter_api_key
+NODE_ENV=production
+CLIENT_URL=https://your-frontend.vercel.app
+```
+
+If you use more than one frontend URL, separate them with commas:
+
+```env
+CLIENT_URL=http://localhost:5173,https://your-frontend.vercel.app
+```
+
+#### 3) Deploy the frontend on Vercel
+
+Set the root directory to `frontend`.
+
+Add this environment variable in Vercel:
+
+```env
+VITE_API_URL=https://your-backend.onrender.com/api
+```
+
+The included `frontend/vercel.json` keeps React Router refreshes working on deployed routes like `/login`, `/dashboard`, and `/history/:id`.
+
+#### 4) Update local and deployed URLs
+
+After both services are live, make sure:
+
+- `CLIENT_URL` in the backend matches the deployed frontend URL
+- `VITE_API_URL` in the frontend matches the deployed backend URL
+
+---
+
+### Single-service option: Render only
+
+If you want one service only, you can deploy the backend on Render and serve the built frontend from the same Node process.
+
+Use:
+
+- Build command: `cd frontend && npm install && npm run build`
+- Start command: `cd backend && npm start`
+
+The backend automatically serves `frontend/dist` when it exists, so the same Render service can host the API and the React app.
 
 ## 🔌 API Reference
 
@@ -304,6 +378,8 @@ When Gemini is unavailable, the backend automatically runs a rule-based analysis
 
 **MongoDB connection failed**
 → Make sure MongoDB is running: `mongod` or use MongoDB Atlas URI
+→ If you’re using Atlas, whitelist your current IP in Atlas Network Access
+→ If you want to bypass Mongo temporarily for local-only testing, set `USE_LOCAL_STORE=true`
 
 **Gemini API error**
 → Check your `GEMINI_API_KEY` in `.env`. Get one free at https://aistudio.google.com
@@ -313,3 +389,6 @@ When Gemini is unavailable, the backend automatically runs a rule-based analysis
 
 **Monaco editor not loading**
 → Run `npm install` again in the frontend directory; it's a large package
+
+**Signup / login on localhost**
+→ In development, the backend falls back to a local file-backed store if MongoDB Atlas is unreachable. Your local data lives in `backend/data/local-db.json`.
