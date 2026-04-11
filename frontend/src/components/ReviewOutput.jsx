@@ -57,21 +57,21 @@ function FormattedText({ content }) {
   const blocks = text.split(/\n\s*\n/).filter(Boolean);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-w-0">
       {blocks.map((block, index) => {
         const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
 
         if (lines.length === 0) return null;
 
         return (
-          <div key={`${block.slice(0, 24)}-${index}`} className="rounded-lg bg-bg-overlay/45 border border-border/60 p-3.5 space-y-2">
+          <div key={`${block.slice(0, 24)}-${index}`} className="rounded-lg bg-bg-overlay/45 border border-border/60 p-3.5 space-y-2 min-w-0">
             {lines.map((line, lineIndex) => (
               isSubheading(line) ? (
                 <div key={`${line}-${lineIndex}`} className="text-text-primary font-display font-semibold text-sm">
                   {line}
                 </div>
               ) : (
-                <p key={`${line}-${lineIndex}`} className="text-text-secondary text-sm leading-7 font-body">
+                <p key={`${line}-${lineIndex}`} className="text-text-secondary text-sm leading-7 font-body break-words">
                   {line}
                 </p>
               )
@@ -107,20 +107,20 @@ function SectionCard({ section, content, language, interviewMode }) {
   if (!content || content.trim() === '') return null;
 
   return (
-    <div className={`rounded-xl border ${colors.border} ${colors.bg} overflow-hidden animate-slide-up`}>
-      <div className="flex items-center justify-between px-5 py-3.5 select-none border-b border-current/10">
-        <div className="flex items-center gap-3">
+    <div className={`rounded-xl border ${colors.border} ${colors.bg} overflow-hidden animate-slide-up min-w-0`}>
+      <div className="flex items-center justify-between gap-3 px-5 py-3.5 select-none border-b border-current/10 min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
           <span className="text-lg leading-none">{section.emoji}</span>
-          <h3 className={`font-display font-semibold text-sm ${colors.text}`}>
+          <h3 className={`font-display font-semibold text-sm truncate ${colors.text}`}>
             {section.label}
           </h3>
         </div>
         {section.isCode && <CopyButton text={content} />}
       </div>
 
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0">
         {section.isCode ? (
-          <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8]">
+          <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8] min-w-0">
             <SyntaxHighlighter
               language={language || 'javascript'}
               style={oneLight}
@@ -154,9 +154,9 @@ function OverviewCard({ label, value, accent }) {
   };
 
   return (
-    <div className={`rounded-2xl border p-4 ${palette[accent] || palette.amber}`}>
+    <div className={`rounded-2xl border p-4 min-w-0 ${palette[accent] || palette.amber}`}>
       <div className="text-[11px] font-mono uppercase tracking-[0.18em] opacity-80">{label}</div>
-      <div className="mt-2 text-sm leading-6 text-text-primary">{value}</div>
+      <div className="mt-2 text-sm leading-6 text-text-primary break-words">{value}</div>
     </div>
   );
 }
@@ -185,9 +185,9 @@ export default function ReviewOutput({ review }) {
   const trimmedVerdictPreview = verdictText.split('\n')[0];
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in min-w-0">
       {(focusAreas.length > 0 || customInstructions || contextNotes) && (
-        <div className="glass-card p-4">
+        <div className="glass-card p-4 min-w-0">
           <div className="flex flex-wrap gap-2 mb-3">
             {focusAreas.map((item) => (
               <span key={item} className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
@@ -196,12 +196,12 @@ export default function ReviewOutput({ review }) {
             ))}
           </div>
           {customInstructions && (
-            <p className="text-text-secondary text-sm leading-relaxed">
+            <p className="text-text-secondary text-sm leading-relaxed break-words">
               <span className="text-text-primary font-display font-medium">Custom instructions:</span> {customInstructions}
             </p>
           )}
           {contextNotes && (
-            <p className="text-text-secondary text-sm leading-relaxed mt-2">
+            <p className="text-text-secondary text-sm leading-relaxed mt-2 break-words">
               <span className="text-text-primary font-display font-medium">Context:</span> {contextNotes}
             </p>
           )}
@@ -231,7 +231,7 @@ export default function ReviewOutput({ review }) {
       )}
 
       <div className="glass-card p-5 md:p-6 space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4 min-w-0">
           <div>
             <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-text-muted">Guided Review</div>
             <h3 className="mt-2 font-display font-bold text-xl text-text-primary">One focused answer at a time</h3>
@@ -244,13 +244,13 @@ export default function ReviewOutput({ review }) {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3 min-w-0">
           <OverviewCard label="TL;DR" value={summaryText.split('\n')[0]} accent="amber" />
           <OverviewCard label="Top Risk" value={trimmedBugPreview} accent="red" />
           <OverviewCard label="Verdict" value={trimmedVerdictPreview} accent="purple" />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex flex-wrap gap-2 pb-1">
           {visibleSections.map((section) => {
             const active = section.key === activeSection;
             return (
@@ -258,7 +258,7 @@ export default function ReviewOutput({ review }) {
                 key={section.key}
                 type="button"
                 onClick={() => setActiveSection(section.key)}
-                className={`shrink-0 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
                   active
                     ? 'border-[#f4d4a0] bg-[#fff4df] text-accent-amber'
                     : 'border-border bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
