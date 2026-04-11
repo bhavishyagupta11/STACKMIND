@@ -141,15 +141,15 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-6xl mx-auto w-full min-w-0 space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="font-display font-bold text-2xl text-text-primary">New Code Review</h1>
           <p className="text-text-secondary text-sm mt-1">Paste your code or upload a file for AI-powered analysis</p>
         </div>
         {result && (
-          <button onClick={handleReset} className="btn-ghost gap-2 text-text-secondary">
+          <button onClick={handleReset} className="btn-ghost gap-2 text-text-secondary self-start">
             <RotateCcw size={14} /> Reset
           </button>
         )}
@@ -157,13 +157,13 @@ export default function ReviewPage() {
 
       {/* Controls row */}
       <div className="glass-card p-5 md:p-6 space-y-5">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid gap-3 lg:grid-cols-[auto_auto_1fr_auto_auto] lg:items-center">
           {/* Language selector */}
           <div className="relative">
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="input-field pr-9 appearance-none cursor-pointer min-w-[140px]"
+              className="input-field pr-9 appearance-none cursor-pointer w-full min-w-0 lg:min-w-[140px]"
             >
               {LANGUAGES.map((l) => (
                 <option key={l.value} value={l.value}>{l.label}</option>
@@ -197,18 +197,15 @@ export default function ReviewPage() {
 
           {/* Filename badge */}
           {fileName && (
-            <div className="flex items-center gap-1.5 badge bg-bg-overlay border border-border text-text-secondary">
+            <div className="flex items-center gap-1.5 badge bg-bg-overlay border border-border text-text-secondary min-w-0">
               <FileCode size={11} /> {fileName}
             </div>
           )}
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
           {/* Interview mode toggle */}
           <button
             onClick={() => setInterviewMode(!interviewMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-medium border transition-all duration-200
+            className={`flex items-center justify-between gap-2 px-4 py-2 rounded-full text-xs font-mono font-medium border transition-all duration-200 w-full lg:w-auto
               ${interviewMode
                 ? 'bg-accent-pink/10 text-accent-pink border-accent-pink/30'
                 : 'bg-bg-overlay text-text-secondary border-border hover:border-border-bright'
@@ -225,7 +222,7 @@ export default function ReviewPage() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="btn-primary glow-cyan"
+            className="btn-primary glow-cyan w-full justify-center lg:w-auto"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-bg-base border-t-transparent rounded-full animate-spin" />
@@ -246,7 +243,7 @@ export default function ReviewPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4 min-w-0">
           <div className="space-y-4">
             <div>
               <div className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-2">Focus areas</div>
@@ -327,8 +324,8 @@ export default function ReviewPage() {
       </div>
 
       {/* Monaco Editor */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      <div className="space-y-2 min-w-0">
+        <div className="flex items-center justify-between gap-2 min-w-0">
           <span className="text-text-secondary text-xs font-mono uppercase tracking-wider">Code Editor</span>
           <span className="text-text-muted text-xs font-mono">{code.split('\n').length} lines</span>
         </div>
@@ -354,11 +351,11 @@ export default function ReviewPage() {
         )}
 
         {result && !loading && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
+          <div className="space-y-4 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <Zap size={15} className="text-accent-cyan" />
               <h2 className="font-display font-bold text-lg text-text-primary">Review Results</h2>
-              <span className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 ml-auto">
+              <span className="badge bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 sm:ml-auto">
                 {result.language}
               </span>
               {result.focusAreas?.length > 0 && (
