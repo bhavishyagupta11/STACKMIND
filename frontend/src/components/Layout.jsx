@@ -55,7 +55,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-bg-base flex">
+    <div className="min-h-screen bg-bg-base flex overflow-x-hidden">
       {/* ── Mobile overlay ── */}
       {sidebarOpen && (
         <div
@@ -66,30 +66,39 @@ export default function Layout({ children }) {
 
       {/* ── Sidebar ── */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-bg-surface/95 border-r border-border z-30
-          flex flex-col transition-all duration-300 ease-out lg:translate-x-0
-          ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'}
+        className={`fixed top-0 left-0 h-full w-72 max-w-[84vw] bg-bg-surface/95 border-r border-border z-30
+          flex flex-col overflow-hidden transition-transform duration-300 ease-out lg:translate-x-0
+          ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Logo */}
-        <div className="p-5 border-b border-border">
+        <div className="flex items-start gap-3 p-5 border-b border-border">
           <Link
             to="/dashboard"
-            className={`flex items-center group ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
+            className={`flex flex-1 min-w-0 items-center group ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-amber to-[#ffbf66]
-                            flex items-center justify-center shadow-[0_10px_24px_rgba(255,161,22,0.25)] group-hover:scale-105 transition-transform">
+                            flex items-center justify-center shadow-[0_10px_24px_rgba(255,161,22,0.25)] group-hover:scale-105 transition-transform shrink-0">
               <Zap size={18} className="text-white" />
             </div>
-            <div className={sidebarCollapsed ? 'hidden' : 'block'}>
-              <div className="font-display font-bold text-text-primary text-sm leading-none">STACKMIND</div>
-              <div className="text-accent-amber text-xs font-mono mt-0.5">Code Intelligence</div>
+            <div className={`min-w-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+              <div className="font-display font-bold text-text-primary text-sm leading-none truncate">STACKMIND</div>
+              <div className="text-accent-amber text-xs font-mono mt-0.5 truncate">Code Intelligence</div>
             </div>
           </Link>
+
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="hidden lg:flex w-8 h-8 mt-0.5 rounded-lg border border-border bg-bg-elevated text-text-secondary hover:text-text-primary hover:border-border-bright items-center justify-center transition-colors shrink-0"
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
             const active = location.pathname === path;
             return (
@@ -97,7 +106,7 @@ export default function Layout({ children }) {
                 key={path}
                 to={path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium min-w-0
                   transition-all duration-150 group ${sidebarCollapsed ? 'justify-center' : ''}
                   ${active
                     ? 'bg-accent-amber/10 text-accent-amber border border-accent-amber/25'
@@ -106,7 +115,7 @@ export default function Layout({ children }) {
                 title={sidebarCollapsed ? label : undefined}
               >
                 <Icon size={17} className={active ? 'text-accent-amber' : ''} />
-                <span className={`font-display ${sidebarCollapsed ? 'hidden' : 'block'}`}>{label}</span>
+                <span className={`font-display truncate ${sidebarCollapsed ? 'hidden' : 'block'}`}>{label}</span>
                 {active && !sidebarCollapsed && <ChevronRight size={14} className="ml-auto text-accent-amber" />}
               </Link>
             );
@@ -115,24 +124,22 @@ export default function Layout({ children }) {
       </aside>
 
       {/* ── Main content ── */}
-      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
         <header className="sticky top-0 z-10 bg-bg-surface/90 backdrop-blur border-b border-border px-4 lg:px-6 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleSidebar}
-                className="w-10 h-10 rounded-xl border border-border bg-bg-elevated text-text-secondary hover:text-text-primary hover:border-border-bright transition-colors flex items-center justify-center"
-                aria-label="Toggle sidebar"
-              >
-                <span className="hidden lg:block">
-                  {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-                </span>
-                <span className="lg:hidden">
-                  <Menu size={18} />
-                </span>
-              </button>
-
-            </div>
+          <div className="flex items-center justify-between gap-4 min-w-0">
+            <button
+              onClick={toggleSidebar}
+              className="w-10 h-10 rounded-xl border border-border bg-bg-elevated text-text-secondary hover:text-text-primary hover:border-border-bright transition-colors flex items-center justify-center flex-shrink-0"
+              aria-label="Toggle sidebar"
+              aria-expanded={!sidebarCollapsed}
+            >
+              <span className="hidden lg:block">
+                {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              </span>
+              <span className="lg:hidden">
+                <Menu size={18} />
+              </span>
+            </button>
 
             <div className="relative" ref={accountMenuRef}>
               <button
@@ -179,7 +186,7 @@ export default function Layout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8">
+        <main className="flex-1 p-4 lg:p-8 min-w-0 overflow-x-hidden">
           {children}
         </main>
       </div>
