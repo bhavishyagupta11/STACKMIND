@@ -143,3 +143,12 @@
 .monaco-editor, .monaco-editor-background, .monaco-editor .inputarea.ime-input {
   background-color: #fcfbf8 !important;
 }
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

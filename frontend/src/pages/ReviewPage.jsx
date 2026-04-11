@@ -3,7 +3,13 @@ import { submitReview } from '../services/reviewService';
 import CodeEditor from '../components/CodeEditor';
 import ReviewOutput from '../components/ReviewOutput';
 import AnalyzingLoader from '../components/AnalyzingLoader';
-import { LANGUAGES, ACCEPTED_EXTENSIONS, detectLanguageFromFilename } from '../utils/languages';
+import {
+  LANGUAGES,
+  ACCEPTED_EXTENSIONS,
+  detectLanguageFromFilename,
+  detectLanguageFromCode,
+  buildLanguageValidationDiagnostics,
+} from '../utils/languages';
 import {
   Code2, Upload, Zap, RotateCcw, Mic, MicOff,
   ChevronDown, FileCode, AlertCircle, Sparkles, ShieldCheck, Gauge, FlaskConical, BookOpenText
@@ -34,6 +40,12 @@ function twoSum(nums, target) {
 export default function ReviewPage() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [language, setLanguage] = useState('javascript');
+  const [languageAnalysis, setLanguageAnalysis] = useState({
+    language: 'javascript',
+    score: 0,
+    confidence: 'low',
+    ambiguous: false,
+  });
   const [interviewMode, setInterviewMode] = useState(false);
   const [focusAreas, setFocusAreas] = useState([]);
   const [customInstructions, setCustomInstructions] = useState('');
@@ -46,6 +58,7 @@ export default function ReviewPage() {
   const [fileName, setFileName] = useState(null);
   const fileRef = useRef();
   const resultRef = useRef();
+  const autoSwitchToastRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -56,6 +69,33 @@ export default function ReviewPage() {
       // ignore malformed local storage
     }
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const detected = detectLanguageFromCode(code);
+      setLanguageAnalysis(detected);
+
+      if (!detected.language || detected.language === language) {
+        return;
+      }
+
+      if (detected.confidence !== 'high') {
+        return;
+      }
+
+      setLanguage(detected.language);
+
+      if (autoSwitchToastRef.current !== detected.language) {
+        const detectedLabel = LANGUAGES.find((item) => item.value === detected.language)?.label || detected.language;
+        toast(`Detected ${detectedLabel} code. Switched the editor language automatically.`, {
+          icon: '✨',
+        });
+        autoSwitchToastRef.current = detected.language;
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [code, language]);
 
   const toggleFocusArea = (value) => {
     setFocusAreas((prev) =>
@@ -79,6 +119,8 @@ export default function ReviewPage() {
       // Auto-detect language from extension
       const detected = detectLanguageFromFilename(file.name);
       setLanguage(detected);
+      setLanguageAnalysis({ language: detected, score: 0, confidence: 'low', ambiguous: false });
+      autoSwitchToastRef.current = detected;
       setActiveTab('editor');
       toast.success(`Loaded: ${file.name}`);
     };
@@ -88,6 +130,10 @@ export default function ReviewPage() {
   const handleSubmit = async () => {
     if (!code.trim()) return toast.error('Please enter some code to review');
     if (code.trim().length < 10) return toast.error('Code is too short to analyze');
+
+    if (mismatchIssue) {
+      return toast.error(mismatchIssue.message);
+    }
 
     setLoading(true);
     setResult(null);
@@ -105,7 +151,7 @@ export default function ReviewPage() {
       const data = await submitReview(reviewPayload);
       setResult(data.review);
 
-      if (savePreferences) {
+    if (savePreferences) {
         localStorage.setItem(
           REVIEW_PREFS_KEY,
           JSON.stringify({ focusAreas, customInstructions })
@@ -133,12 +179,23 @@ export default function ReviewPage() {
   const handleReset = () => {
     setCode(DEFAULT_CODE);
     setLanguage('javascript');
+    setLanguageAnalysis({ language: 'javascript', score: 0, confidence: 'low', ambiguous: false });
     setInterviewMode(false);
     setContextNotes('');
     setResult(null);
     setError(null);
     setFileName(null);
+    autoSwitchToastRef.current = 'javascript';
   };
+
+  const validationDiagnostics = buildLanguageValidationDiagnostics({
+    code,
+    selectedLanguage: language,
+    detectedLanguage: languageAnalysis.language,
+    detectedScore: languageAnalysis.score,
+  });
+  const mismatchIssue = validationDiagnostics.find((item) => item.severity === 'error') || null;
+  const warningIssue = validationDiagnostics.find((item) => item.severity === 'warning') || null;
 
   return (
     <div className="max-w-6xl mx-auto w-full min-w-0 space-y-6 animate-fade-in">
@@ -324,12 +381,31 @@ export default function ReviewPage() {
       </div>
 
       {/* Monaco Editor */}
-      <div className="space-y-2 min-w-0">
+          <div className="space-y-2 min-w-0">
         <div className="flex items-center justify-between gap-2 min-w-0">
-          <span className="text-text-secondary text-xs font-mono uppercase tracking-wider">Code Editor</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-text-secondary text-xs font-mono uppercase tracking-wider">Code Editor</span>
+            <span className="badge bg-bg-overlay border border-border text-text-secondary">
+              Detected: {LANGUAGES.find((item) => item.value === languageAnalysis.language)?.label || 'Plain text'}
+            </span>
+            {languageAnalysis.confidence && languageAnalysis.language && (
+              <span className="badge bg-bg-overlay border border-border text-text-secondary">
+                {languageAnalysis.confidence} confidence
+              </span>
+            )}
+          </div>
           <span className="text-text-muted text-xs font-mono">{code.split('\n').length} lines</span>
         </div>
-        <CodeEditor code={code} onChange={setCode} language={language} />
+        {(mismatchIssue || warningIssue) && (
+          <div className={`rounded-xl border px-4 py-3 text-sm ${
+            mismatchIssue
+              ? 'border-accent-red/30 bg-accent-red/5 text-accent-red'
+              : 'border-accent-amber/30 bg-accent-amber/5 text-accent-amber'
+          }`}>
+            {mismatchIssue?.message || warningIssue?.message}
+          </div>
+        )}
+        <CodeEditor code={code} onChange={setCode} language={language} diagnostics={validationDiagnostics} />
       </div>
 
       {/* Results area */}

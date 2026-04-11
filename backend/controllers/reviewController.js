@@ -1,5 +1,26 @@
 const Review = require('../models/Review');
 const { analyzeCode } = require('../services/geminiService');
+const { detectLanguageFromCode } = require('../utils/languageDetection');
+const { createReview: createLocalReview } = require('../services/localStore');
+
+const LANGUAGE_LABELS = {
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  python: 'Python',
+  java: 'Java',
+  cpp: 'C++',
+  c: 'C',
+  csharp: 'C#',
+  go: 'Go',
+  rust: 'Rust',
+  ruby: 'Ruby',
+  php: 'PHP',
+  swift: 'Swift',
+  kotlin: 'Kotlin',
+  sql: 'SQL',
+  html: 'HTML',
+  css: 'CSS',
+};
 
 // @desc    Submit code for AI review
 // @route   POST /api/review
@@ -35,6 +56,18 @@ const createReview = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Context notes must be 3,000 characters or less' });
     }
 
+    const detected = detectLanguageFromCode(code);
+    if (detected.language && detected.language !== language) {
+      const detectedLabel = LANGUAGE_LABELS[detected.language] || detected.language;
+      const selectedLabel = LANGUAGE_LABELS[language] || language;
+      return res.status(422).json({
+        success: false,
+        message: `Language mismatch: this code looks like ${detectedLabel}, but you selected ${selectedLabel}.`,
+        detectedLanguage: detected.language,
+        selectedLanguage: language,
+      });
+    }
+
     // Call Gemini (or fallback)
     const {
       parsed,
@@ -53,8 +86,7 @@ const createReview = async (req, res, next) => {
       contextNotes,
     });
 
-    // Save to database
-    const review = await Review.create({
+    const reviewPayload = {
       userId: req.user._id,
       code,
       language,
@@ -65,7 +97,11 @@ const createReview = async (req, res, next) => {
       response: parsed,
       rawResponse,
       isFallback,
-    });
+    };
+
+    const review = req.app.locals.persistenceMode === 'local'
+      ? await createLocalReview(reviewPayload)
+      : await Review.create(reviewPayload);
 
     res.status(201).json({
       success: true,

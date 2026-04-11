@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { getMonacoLanguage } from '../utils/languages';
 
@@ -24,10 +24,15 @@ const EDITOR_OPTIONS = {
   theme: 'stackmind-light',
 };
 
-export default function CodeEditor({ code, onChange, language }) {
+export default function CodeEditor({ code, onChange, language, diagnostics = [] }) {
   const monacoLang = getMonacoLanguage(language);
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
 
   const handleEditorMount = (editor, monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+
     monaco.editor.defineTheme('stackmind-light', {
       base: 'vs',
       inherit: true,
@@ -58,6 +63,26 @@ export default function CodeEditor({ code, onChange, language }) {
     });
     monaco.editor.setTheme('stackmind-light');
   };
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    const model = editor?.getModel?.();
+
+    if (!editor || !monaco || !model) return;
+
+    const markerData = diagnostics.map((item) => ({
+      severity: monaco.MarkerSeverity[item.severity === 'error' ? 'Error' : 'Warning'],
+      startLineNumber: item.lineNumber || 1,
+      startColumn: item.column || 1,
+      endLineNumber: item.lineNumber || 1,
+      endColumn: Math.max((item.column || 1) + 1, 2),
+      message: item.message,
+      source: item.source || 'STACKMIND',
+    }));
+
+    monaco.editor.setModelMarkers(model, 'stackmind-language', markerData);
+  }, [diagnostics]);
 
   return (
     <div className="rounded-lg overflow-hidden border border-border" style={{ height: '420px' }}>

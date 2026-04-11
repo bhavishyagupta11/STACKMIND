@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
@@ -171,10 +171,17 @@ export default function ReviewOutput({ review }) {
   });
   const firstOpenSection = visibleSections[0]?.key || null;
   const [activeSection, setActiveSection] = useState(firstOpenSection);
+  const railRef = useRef(null);
+  const sectionButtonRefs = useRef(new Map());
 
   useEffect(() => {
     setActiveSection(firstOpenSection);
   }, [firstOpenSection, review]);
+
+  useEffect(() => {
+    const button = sectionButtonRefs.current.get(activeSection);
+    button?.scrollIntoView?.({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [activeSection]);
 
   const activeIndex = visibleSections.findIndex((section) => section.key === activeSection);
   const currentSection = visibleSections[activeIndex] || null;
@@ -183,6 +190,13 @@ export default function ReviewOutput({ review }) {
   const bugText = response?.bugsIssues?.trim() || 'No major bug notes were included in this review.';
   const trimmedBugPreview = bugText.split('\n')[0];
   const trimmedVerdictPreview = verdictText.split('\n')[0];
+
+  const scrollRail = (direction) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const amount = Math.max(rail.clientWidth * 0.75, 280);
+    rail.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
 
   return (
     <div className="space-y-4 animate-fade-in min-w-0">
@@ -250,7 +264,20 @@ export default function ReviewOutput({ review }) {
           <OverviewCard label="Verdict" value={trimmedVerdictPreview} accent="purple" />
         </div>
 
-        <div className="flex flex-wrap gap-2 pb-1">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => scrollRail(-1)}
+            className="btn-secondary shrink-0 px-3 py-2"
+            aria-label="Scroll sections left"
+          >
+            <ArrowLeft size={15} />
+          </button>
+
+          <div
+            ref={railRef}
+            className="flex-1 flex gap-2 overflow-x-auto overflow-y-hidden pb-1 hide-scrollbar snap-x snap-mandatory"
+          >
           {visibleSections.map((section) => {
             const active = section.key === activeSection;
             return (
@@ -258,7 +285,14 @@ export default function ReviewOutput({ review }) {
                 key={section.key}
                 type="button"
                 onClick={() => setActiveSection(section.key)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+                ref={(node) => {
+                  if (!node) {
+                    sectionButtonRefs.current.delete(section.key);
+                    return;
+                  }
+                  sectionButtonRefs.current.set(section.key, node);
+                }}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors shrink-0 snap-start whitespace-nowrap ${
                   active
                     ? 'border-[#f4d4a0] bg-[#fff4df] text-accent-amber'
                     : 'border-border bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
@@ -269,6 +303,16 @@ export default function ReviewOutput({ review }) {
               </button>
             );
           })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => scrollRail(1)}
+            className="btn-secondary shrink-0 px-3 py-2"
+            aria-label="Scroll sections right"
+          >
+            <ArrowRight size={15} />
+          </button>
         </div>
 
         {currentSection && (

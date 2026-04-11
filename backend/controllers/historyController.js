@@ -1,10 +1,33 @@
 const Review = require('../models/Review');
+const {
+  listReviewsByUser,
+  countReviewsByUser,
+  getReviewById: getLocalReviewById,
+  deleteReviewById: deleteLocalReviewById,
+} = require('../services/localStore');
 
 // @desc    Get all past reviews for logged-in user
 // @route   GET /api/history
 // @access  Private
 const getHistory = async (req, res, next) => {
   try {
+    if (req.app.locals.persistenceMode === 'local') {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const allReviews = listReviewsByUser(req.user._id);
+      const total = countReviewsByUser(req.user._id);
+      const skip = (page - 1) * limit;
+      const reviews = allReviews.slice(skip, skip + limit).map(({ rawResponse, ...review }) => review);
+
+      return res.json({
+        success: true,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        reviews,
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -35,6 +58,15 @@ const getHistory = async (req, res, next) => {
 // @access  Private
 const getReviewById = async (req, res, next) => {
   try {
+    if (req.app.locals.persistenceMode === 'local') {
+      const review = getLocalReviewById(req.user._id, req.params.id);
+      if (!review) {
+        return res.status(404).json({ success: false, message: 'Review not found' });
+      }
+
+      return res.json({ success: true, review });
+    }
+
     const review = await Review.findOne({ _id: req.params.id, userId: req.user._id });
 
     if (!review) {
@@ -52,6 +84,15 @@ const getReviewById = async (req, res, next) => {
 // @access  Private
 const deleteReview = async (req, res, next) => {
   try {
+    if (req.app.locals.persistenceMode === 'local') {
+      const review = deleteLocalReviewById(req.user._id, req.params.id);
+      if (!review) {
+        return res.status(404).json({ success: false, message: 'Review not found' });
+      }
+
+      return res.json({ success: true, message: 'Review deleted' });
+    }
+
     const review = await Review.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
 
     if (!review) {

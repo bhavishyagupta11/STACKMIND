@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Activity, Database, GitBranch, Layers3, Orbit, Sigma } from 'lucide-react';
 import { COMPLEXITY_PRESETS, parseComplexityInsights } from '../utils/complexity';
 
@@ -203,7 +203,7 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-text-muted">Growth Graph</div>
-          <h3 className="mt-1 font-display font-semibold text-text-primary">LeetCode-style time complexity map</h3>
+          <h3 className="mt-1 font-display font-semibold text-text-primary">Time complexity map</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="badge bg-rose-50 text-rose-700 border border-rose-200">Current: {currentPreset.key}</span>
@@ -312,11 +312,18 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
 }
 
 export default function ComplexityVisualizer({ complexityText, optimizationText, code }) {
-  const insights = parseComplexityInsights({ complexityText, optimizationText, code });
-  const currentPreset = COMPLEXITY_PRESETS.find((item) => item.key === insights.time.key) || COMPLEXITY_PRESETS[2];
-  const targetPreset =
-    insights.optimizationTarget &&
-    COMPLEXITY_PRESETS.find((item) => item.key === insights.optimizationTarget.key);
+  const insights = useMemo(
+    () => parseComplexityInsights({ complexityText, optimizationText, code }),
+    [complexityText, optimizationText, code]
+  );
+  const currentPreset = useMemo(
+    () => COMPLEXITY_PRESETS.find((item) => item.key === insights.time.key) || COMPLEXITY_PRESETS[2],
+    [insights.time.key]
+  );
+  const targetPreset = useMemo(
+    () => insights.optimizationTarget && COMPLEXITY_PRESETS.find((item) => item.key === insights.optimizationTarget.key),
+    [insights.optimizationTarget]
+  );
 
   return (
     <section className="glass-card p-5 md:p-6 overflow-hidden relative">
@@ -334,16 +341,18 @@ export default function ComplexityVisualizer({ complexityText, optimizationText,
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
           <ComplexityDial title="Time Complexity" dimension={insights.time} icon={Orbit} />
+          <ComplexityDial title="Space Complexity" dimension={insights.space} icon={Activity} />
         </div>
 
         <div className="mt-4">
           <ComplexityGraph currentPreset={currentPreset} targetPreset={targetPreset} />
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <ProjectionLane title="Time Growth Curve" rows={insights.timeProjection} hue={insights.time.hue} />
+          <ProjectionLane title="Space Growth Curve" rows={insights.spaceProjection} hue={insights.space.hue} />
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

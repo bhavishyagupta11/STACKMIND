@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "_id": "14124791-e25e-422b-a3a8-027dc349c6ab",
+      "name": "Bhavishya Gupta",
+      "email": "techzpath-test+321606268@gmail.com",
+      "password": "$2a$12$msZNS/oZ/iP7FfXVIz85yOPlv7XGJLfs9.dqzCJ5BHGLO1P.K3WQm",
+      "createdAt": "2026-04-11T11:30:19.943Z",
+      "updatedAt": "2026-04-11T11:30:19.943Z"
+    }
+  ],
+  "reviews": []
+}

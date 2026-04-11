@@ -1,5 +1,12 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  comparePassword,
+  updateUser,
+} = require('../services/localStore');
 
 const normalizeEmail = (email = '') => email.trim().toLowerCase();
 
@@ -22,13 +29,19 @@ const signup = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide name, email and password' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+    let user;
+    if (req.app.locals.persistenceMode === 'local') {
+      user = await createUser({ name, email: normalizedEmail, password });
+    } else {
+      // Check if user already exists
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+      }
+
+      user = await User.create({ name: name.trim(), email: normalizedEmail, password });
     }
 
-    const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -54,15 +67,23 @@ const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    // Find user and explicitly include password field
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password' });
-    }
+    let user;
+    if (req.app.locals.persistenceMode === 'local') {
+      user = findUserByEmail(normalizedEmail);
+      if (!user || !(await comparePassword(user, password))) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
+    } else {
+      // Find user and explicitly include password field
+      user = await User.findOne({ email: normalizedEmail }).select('+password');
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
 
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
     }
 
     const token = generateToken(user._id);
@@ -82,6 +103,14 @@ const login = async (req, res, next) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
+  if (req.app.locals.persistenceMode === 'local') {
+    const user = findUserById(req.user._id);
+    return res.json({
+      success: true,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  }
+
   res.json({
     success: true,
     user: { id: req.user._id, name: req.user.name, email: req.user.email },
@@ -111,6 +140,21 @@ const updateProfile = async (req, res, next) => {
 
     if (newPassword && !currentPassword) {
       return res.status(400).json({ success: false, message: 'Current password is required to set a new password' });
+    }
+
+    if (req.app.locals.persistenceMode === 'local') {
+      const user = await updateUser(req.user._id, {
+        name: trimmedName,
+        email: normalizedEmail,
+        currentPassword,
+        newPassword,
+      });
+
+      return res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: { id: user._id, name: user.name, email: user.email },
+      });
     }
 
     const emailOwner = await User.findOne({ email: normalizedEmail });

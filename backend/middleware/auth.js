@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { findUserById } = require('../services/localStore');
 
 const protect = async (req, res, next) => {
   let token;
@@ -17,11 +18,18 @@ const protect = async (req, res, next) => {
     // Verify and decode token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user to request (without password)
-    req.user = await User.findById(decoded.id).select('-password');
+    if (req.app.locals.persistenceMode === 'local') {
+      req.user = findUserById(decoded.id);
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'User no longer exists' });
+      }
+    } else {
+      // Attach user to request (without password)
+      req.user = await User.findById(decoded.id).select('-password');
 
-    if (!req.user) {
-      return res.status(401).json({ success: false, message: 'User no longer exists' });
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'User no longer exists' });
+      }
     }
 
     next();

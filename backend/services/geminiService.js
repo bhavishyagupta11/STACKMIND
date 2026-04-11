@@ -24,6 +24,11 @@ const getOpenRouterApiKey = () => {
   return isOpenRouterKey(process.env.GEMINI_API_KEY || '') ? process.env.GEMINI_API_KEY : '';
 };
 
+const getPrimaryClientUrl = () => {
+  const raw = process.env.CLIENT_URL || 'http://localhost:5173';
+  return raw.split(',').map((origin) => origin.trim()).filter(Boolean)[0] || 'http://localhost:5173';
+};
+
 const getGenAIClient = () => {
   const geminiApiKey = getGeminiApiKey();
   if (!geminiApiKey) {
@@ -258,7 +263,7 @@ const callOpenRouter = async (prompt) => {
         headers: {
           Authorization: `Bearer ${openRouterApiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
+          'HTTP-Referer': getPrimaryClientUrl(),
           'X-Title': 'STACKMIND',
         },
         body: JSON.stringify({
