@@ -179,23 +179,23 @@ const buildCurvePath = (preset, maxValue) => {
   return points.join(' ');
 };
 
-function ComplexityGraph({ currentPreset, targetPreset }) {
-  const graphPresets = targetPreset && targetPreset.key !== currentPreset.key
-    ? [targetPreset, currentPreset]
+function ComplexityGraph({ currentPreset, finalPreset }) {
+  const graphPresets = finalPreset && finalPreset.key !== currentPreset.key
+    ? [currentPreset, finalPreset]
     : [currentPreset];
   const maxValue = Math.max(...graphPresets.map((preset) => projectCurveValue(preset, 1)), 1);
   const currentPath = buildCurvePath(currentPreset, maxValue);
-  const targetPath = targetPreset && targetPreset.key !== currentPreset.key
-    ? buildCurvePath(targetPreset, maxValue)
+  const finalPath = finalPreset && finalPreset.key !== currentPreset.key
+    ? buildCurvePath(finalPreset, maxValue)
     : null;
   const currentEndY =
     GRAPH_HEIGHT -
     PADDING.bottom -
     (projectCurveValue(currentPreset, 1) / maxValue) * (GRAPH_HEIGHT - PADDING.top - PADDING.bottom);
-  const targetEndY = targetPreset && targetPreset.key !== currentPreset.key
+  const finalEndY = finalPreset && finalPreset.key !== currentPreset.key
     ? GRAPH_HEIGHT -
       PADDING.bottom -
-      (projectCurveValue(targetPreset, 1) / maxValue) * (GRAPH_HEIGHT - PADDING.top - PADDING.bottom)
+      (projectCurveValue(finalPreset, 1) / maxValue) * (GRAPH_HEIGHT - PADDING.top - PADDING.bottom)
     : null;
 
   return (
@@ -207,8 +207,10 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="badge bg-rose-50 text-rose-700 border border-rose-200">Current: {currentPreset.key}</span>
-          {targetPreset && (
-            <span className="badge bg-cyan-50 text-cyan-700 border border-cyan-200">Target: {targetPreset.key}</span>
+          {finalPreset && (
+            <span className="badge bg-cyan-50 text-cyan-700 border border-cyan-200">
+              Final: {finalPreset.key}
+            </span>
           )}
         </div>
       </div>
@@ -247,9 +249,9 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
             />
           ))}
 
-          {targetPath && (
+          {finalPath && (
             <path
-              d={targetPath}
+              d={finalPath}
               fill="none"
               stroke="url(#targetCurve)"
               strokeWidth="4"
@@ -279,15 +281,15 @@ function ComplexityGraph({ currentPreset, targetPreset }) {
             {currentPreset.key}
           </text>
 
-          {targetPath && targetEndY !== null && (
+          {finalPath && finalEndY !== null && (
             <text
               x={GRAPH_WIDTH - 150}
-              y={Math.max(targetEndY - 18, PADDING.top + 34)}
+              y={Math.max(finalEndY - 18, PADDING.top + 34)}
               fill="#0f766e"
               fontSize="15"
               fontWeight="700"
             >
-              Better target: {targetPreset.key}
+              Final complexity: {finalPreset.key}
             </text>
           )}
 
@@ -320,9 +322,11 @@ export default function ComplexityVisualizer({ complexityText, optimizationText,
     () => COMPLEXITY_PRESETS.find((item) => item.key === insights.time.key) || COMPLEXITY_PRESETS[2],
     [insights.time.key]
   );
-  const targetPreset = useMemo(
-    () => insights.optimizationTarget && COMPLEXITY_PRESETS.find((item) => item.key === insights.optimizationTarget.key),
-    [insights.optimizationTarget]
+  const finalPreset = useMemo(
+    () =>
+      COMPLEXITY_PRESETS.find((item) => item.key === insights.finalTime.key) ||
+      COMPLEXITY_PRESETS[2],
+    [insights.finalTime.key]
   );
 
   return (
@@ -347,7 +351,7 @@ export default function ComplexityVisualizer({ complexityText, optimizationText,
         </div>
 
         <div className="mt-4">
-          <ComplexityGraph currentPreset={currentPreset} targetPreset={targetPreset} />
+          <ComplexityGraph currentPreset={currentPreset} finalPreset={finalPreset} />
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -396,9 +400,9 @@ export default function ComplexityVisualizer({ complexityText, optimizationText,
               <span className="font-display font-medium text-text-primary">Reviewer note:</span> {complexityText}
             </p>
           )}
-          {targetPreset && targetPreset.key !== currentPreset.key && (
+          {finalPreset && (
             <p className="mt-3 text-sm leading-7 text-text-secondary">
-              <span className="font-display font-medium text-text-primary">Optimization target:</span> Based on the review hints, a realistic next step is aiming for {targetPreset.key} time complexity.
+              <span className="font-display font-medium text-text-primary">Final complexity:</span> The graph and summary now use {finalPreset.key} time complexity as the final aligned estimate.
             </p>
           )}
         </div>

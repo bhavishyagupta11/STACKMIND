@@ -213,6 +213,9 @@ const buildProjection = (dimension) => {
   }));
 };
 
+const resolveFinalTimeComplexity = (time, optimizationTarget) =>
+  optimizationTarget && optimizationTarget.key !== time.key ? optimizationTarget : time;
+
 const getHeadline = (timeScore, spaceScore, signals) => {
   if (timeScore >= 7) return 'This solution will struggle hard on large inputs.';
   if (timeScore >= 5) return 'This solution is acceptable for small inputs but scales aggressively.';
@@ -258,14 +261,17 @@ export const parseComplexityInsights = ({ complexityText = '', optimizationText 
   const space = parseComplexityDimension(complexityText, 'space');
   const signals = summarizeCodeSignals(code);
   const optimizationTarget = inferOptimizationTarget(optimizationText, time);
+  const finalTime = resolveFinalTimeComplexity(time, optimizationTarget);
 
   return {
     time,
     space,
     signals,
     optimizationTarget,
+    finalTime,
     timeProjection: buildProjection(time),
     spaceProjection: buildProjection(space),
+    finalTimeProjection: buildProjection(finalTime),
     headline: getHeadline(time.score, space.score, signals),
   };
 };
