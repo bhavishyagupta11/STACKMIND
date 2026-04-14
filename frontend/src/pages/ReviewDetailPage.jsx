@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getReviewById, deleteReview } from '../services/reviewService';
 import ReviewOutput from '../components/ReviewOutput';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ArrowLeft, Clock, Code2, Mic, Trash2, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const CodeSnippet = lazy(() => import('../components/CodeSnippet'));
 
 export default function ReviewDetailPage() {
   const { id } = useParams();
@@ -16,19 +16,27 @@ export default function ReviewDetailPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       try {
         const data = await getReviewById(id);
-        setReview(data.review);
+        if (!cancelled) setReview(data.review);
       } catch {
-        toast.error('Review not found');
-        navigate('/history');
+        if (!cancelled) {
+          toast.error('Review not found');
+          navigate('/history');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     load();
-  }, [id]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, navigate]);
 
   const handleDelete = async () => {
     if (!window.confirm('Delete this review?')) return;
@@ -120,22 +128,9 @@ export default function ReviewDetailPage() {
                 {copied ? 'Copied!' : 'Copy code'}
               </button>
             </div>
-            <SyntaxHighlighter
-              language={review.language}
-              style={oneLight}
-              showLineNumbers
-              customStyle={{
-                margin: 0,
-                padding: '16px',
-                background: '#fcfbf8',
-                fontSize: '12px',
-                lineHeight: '1.7',
-                fontFamily: '"JetBrains Mono", monospace',
-                maxHeight: '400px',
-              }}
-            >
-              {review.code}
-            </SyntaxHighlighter>
+            <Suspense fallback={<div className="px-4 py-10 text-sm text-text-muted">Loading code preview...</div>}>
+              <CodeSnippet code={review.code} language={review.language} />
+            </Suspense>
           </div>
         )}
       </div>
