@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { submitReview } from '../services/reviewService';
-import CodeEditor from '../components/CodeEditor';
-import ReviewOutput from '../components/ReviewOutput';
 import AnalyzingLoader from '../components/AnalyzingLoader';
 import {
   LANGUAGES,
@@ -15,6 +13,9 @@ import {
   ChevronDown, FileCode, AlertCircle, Sparkles, ShieldCheck, Gauge, FlaskConical, BookOpenText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const CodeEditor = lazy(() => import('../components/CodeEditor'));
+const ReviewOutput = lazy(() => import('../components/ReviewOutput'));
 
 const REVIEW_PREFS_KEY = 'reviewPreferences.v2';
 const FOCUS_AREAS = [
@@ -188,12 +189,12 @@ export default function ReviewPage() {
     autoSwitchToastRef.current = 'javascript';
   };
 
-  const validationDiagnostics = buildLanguageValidationDiagnostics({
+  const validationDiagnostics = useMemo(() => buildLanguageValidationDiagnostics({
     code,
     selectedLanguage: language,
     detectedLanguage: languageAnalysis.language,
     detectedScore: languageAnalysis.score,
-  });
+  }), [code, language, languageAnalysis.language, languageAnalysis.score]);
   const mismatchIssue = validationDiagnostics.find((item) => item.severity === 'error') || null;
   const warningIssue = validationDiagnostics.find((item) => item.severity === 'warning') || null;
 
@@ -405,7 +406,9 @@ export default function ReviewPage() {
             {mismatchIssue?.message || warningIssue?.message}
           </div>
         )}
-        <CodeEditor code={code} onChange={setCode} language={language} diagnostics={validationDiagnostics} />
+        <Suspense fallback={<div className="rounded-lg border border-border bg-bg-surface h-[420px] flex items-center justify-center"><div className="w-6 h-6 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin" /></div>}>
+          <CodeEditor code={code} onChange={setCode} language={language} diagnostics={validationDiagnostics} />
+        </Suspense>
       </div>
 
       {/* Results area */}
@@ -445,7 +448,9 @@ export default function ReviewPage() {
                 </span>
               )}
             </div>
-            <ReviewOutput review={result} />
+            <Suspense fallback={<div className="glass-card p-6">Loading review details...</div>}>
+              <ReviewOutput review={result} />
+            </Suspense>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -10,24 +10,32 @@ export const AuthProvider = ({ children }) => {
 
   // Verify token on mount
   useEffect(() => {
+    let cancelled = false;
+
     const verifyToken = async () => {
       if (!token) {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
         return;
       }
       try {
         const res = await api.get('/auth/me');
-        setUser(res.data.user);
+        if (!cancelled) setUser(res.data.user);
       } catch {
         // Token invalid — clear it
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
+        if (!cancelled) {
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     verifyToken();
+
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
   const login = useCallback((userData, authToken) => {
@@ -46,8 +54,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
+  const value = useMemo(
+    () => ({ user, token, loading, login, updateUser, logout, isAuthenticated: !!user }),
+    [user, token, loading, login, updateUser, logout]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, updateUser, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
