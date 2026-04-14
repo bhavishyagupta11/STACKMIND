@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getHistory, deleteReview } from '../services/reviewService';
 import { Code2, Clock, Trash2, ArrowRight, Search, Mic, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -91,6 +91,8 @@ function ReviewCard({ review, onDelete }) {
   );
 }
 
+const MemoReviewCard = memo(ReviewCard);
+
 export default function HistoryPage() {
   const [reviews, setReviews] = useState([]);
   const [total, setTotal] = useState(0);
@@ -98,33 +100,46 @@ export default function HistoryPage() {
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
 
-  const fetchHistory = async (p = 1) => {
-    setLoading(true);
-    try {
-      const data = await getHistory(p, 10);
-      setReviews(data.reviews);
-      setTotal(data.total);
-      setPages(data.pages);
-    } catch {
-      toast.error('Failed to load history');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { fetchHistory(page); }, [page]);
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await getHistory(page, 10);
+        if (cancelled) return;
+        setReviews(data.reviews);
+        setTotal(data.total);
+        setPages(data.pages);
+      } catch {
+        if (!cancelled) toast.error('Failed to load history');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-  const handleDelete = (id) => {
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
+
+  const handleDelete = useCallback((id) => {
     setReviews((prev) => prev.filter((r) => r._id !== id));
     setTotal((t) => t - 1);
-  };
+  }, []);
 
-  const filtered = reviews.filter(
-    (r) =>
-      r.title?.toLowerCase().includes(search.toLowerCase()) ||
-      r.language?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const query = deferredSearch.toLowerCase();
+    return reviews.filter(
+      (r) =>
+        r.title?.toLowerCase().includes(query) ||
+        r.language?.toLowerCase().includes(query)
+    );
+  }, [deferredSearch, reviews]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -172,7 +187,7 @@ export default function HistoryPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => (
-            <ReviewCard key={r._id} review={r} onDelete={handleDelete} />
+            <MemoReviewCard key={r._id} review={r} onDelete={handleDelete} />
           ))}
         </div>
       )}
