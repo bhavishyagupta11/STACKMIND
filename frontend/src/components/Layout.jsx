@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import {
@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { path: '/history', label: 'History', icon: History },
 ];
 
-export default function Layout({ children }) {
+function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -193,3 +193,5 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
+export default memo(Layout);
