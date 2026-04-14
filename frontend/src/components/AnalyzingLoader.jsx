@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Zap } from 'lucide-react';
 
 const MESSAGES = [
@@ -11,7 +11,7 @@ const MESSAGES = [
   'Finalizing your review...',
 ];
 
-export default function AnalyzingLoader() {
+function AnalyzingLoader() {
   const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
@@ -58,3 +58,5 @@ export default function AnalyzingLoader() {
     </div>
   );
 }
+
+export default memo(AnalyzingLoader);
