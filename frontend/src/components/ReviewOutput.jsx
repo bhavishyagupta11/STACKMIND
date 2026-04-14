@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Brain, Bug, Cpu, Rocket, Sparkles, AlertTriangle,
   Lightbulb, BarChart3, Mic, HelpCircle, Copy, Check,
   AlertCircle, ArrowLeft, ArrowRight
 } from 'lucide-react';
-import ComplexityVisualizer from './ComplexityVisualizer';
+
+const ComplexityVisualizer = lazy(() => import('./ComplexityVisualizer'));
+const CodeSnippet = lazy(() => import('./CodeSnippet'));
 
 const SECTIONS = [
   { key: 'summary',               emoji: '🧭', label: 'TL;DR Summary',             icon: Brain,         color: 'amber',  alwaysShow: true },
@@ -120,23 +120,17 @@ function SectionCard({ section, content, language, interviewMode }) {
 
       <div className="px-5 py-5 min-w-0">
         {section.isCode ? (
-          <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8] min-w-0">
-            <SyntaxHighlighter
-              language={language || 'javascript'}
-              style={oneLight}
-              customStyle={{
-                margin: 0,
-                padding: '16px',
-                background: '#fcfbf8',
-                fontSize: '12.5px',
-                lineHeight: '1.7',
-                fontFamily: '"JetBrains Mono", monospace',
-              }}
-              showLineNumbers
-            >
-              {normalizeDisplayText(content)}
-            </SyntaxHighlighter>
-          </div>
+          <Suspense
+            fallback={<div className="rounded-lg border border-border bg-[#fcfbf8] p-4 text-sm text-text-muted">Loading code preview...</div>}
+          >
+            <div className="rounded-lg overflow-hidden border border-border bg-[#fcfbf8] min-w-0">
+              <CodeSnippet
+                code={normalizeDisplayText(content)}
+                language={language || 'javascript'}
+                maxHeight="none"
+              />
+            </div>
+          </Suspense>
         ) : (
           <FormattedText content={content} />
         )}
@@ -161,14 +155,12 @@ function OverviewCard({ label, value, accent }) {
   );
 }
 
-export default function ReviewOutput({ review }) {
-  if (!review) return null;
-
-  const { response, language, interviewMode, isFallback, focusAreas = [], customInstructions, contextNotes } = review;
-  const visibleSections = SECTIONS.filter((section) => {
+function ReviewOutput({ review }) {
+  const { response, language, interviewMode, isFallback, focusAreas = [], customInstructions, contextNotes } = review || {};
+  const visibleSections = useMemo(() => SECTIONS.filter((section) => {
     if (!section.alwaysShow && !interviewMode) return false;
     return Boolean(response?.[section.key]?.trim());
-  });
+  }), [interviewMode, response]);
   const firstOpenSection = visibleSections[0]?.key || null;
   const [activeSection, setActiveSection] = useState(firstOpenSection);
   const railRef = useRef(null);
@@ -176,7 +168,7 @@ export default function ReviewOutput({ review }) {
 
   useEffect(() => {
     setActiveSection(firstOpenSection);
-  }, [firstOpenSection, review]);
+  }, [firstOpenSection]);
 
   useEffect(() => {
     const button = sectionButtonRefs.current.get(activeSection);
@@ -185,11 +177,13 @@ export default function ReviewOutput({ review }) {
 
   const activeIndex = visibleSections.findIndex((section) => section.key === activeSection);
   const currentSection = visibleSections[activeIndex] || null;
-  const summaryText = response?.summary?.trim() || 'Review generated successfully.';
-  const verdictText = response?.finalVerdict?.trim() || 'Final verdict not available.';
-  const bugText = response?.bugsIssues?.trim() || 'No major bug notes were included in this review.';
+  const summaryText = useMemo(() => response?.summary?.trim() || 'Review generated successfully.', [response?.summary]);
+  const verdictText = useMemo(() => response?.finalVerdict?.trim() || 'Final verdict not available.', [response?.finalVerdict]);
+  const bugText = useMemo(() => response?.bugsIssues?.trim() || 'No major bug notes were included in this review.', [response?.bugsIssues]);
   const trimmedBugPreview = bugText.split('\n')[0];
   const trimmedVerdictPreview = verdictText.split('\n')[0];
+
+  if (!review) return null;
 
   const scrollRail = (direction) => {
     const rail = railRef.current;
@@ -237,11 +231,13 @@ export default function ReviewOutput({ review }) {
       )}
 
       {response?.complexity?.trim() && (
-        <ComplexityVisualizer
-          complexityText={response.complexity}
-          optimizationText={response.optimizationSuggestions}
-          code={review.code}
-        />
+        <Suspense fallback={<div className="glass-card p-5 md:p-6">Loading complexity visualizer...</div>}>
+          <ComplexityVisualizer
+            complexityText={response.complexity}
+            optimizationText={response.optimizationSuggestions}
+            code={review.code}
+          />
+        </Suspense>
       )}
 
       <div className="glass-card p-5 md:p-6 space-y-5">
@@ -350,3 +346,5 @@ export default function ReviewOutput({ review }) {
     </div>
   );
 }
+
+export default React.memo(ReviewOutput);
