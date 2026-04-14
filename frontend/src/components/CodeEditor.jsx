@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { getMonacoLanguage } from '../utils/languages';
 
@@ -24,7 +24,7 @@ const EDITOR_OPTIONS = {
   theme: 'stackmind-light',
 };
 
-export default function CodeEditor({ code, onChange, language, diagnostics = [] }) {
+function CodeEditor({ code, onChange, language, diagnostics = [] }) {
   const monacoLang = getMonacoLanguage(language);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
@@ -102,3 +102,5 @@ export default function CodeEditor({ code, onChange, language, diagnostics = [] 
     </div>
   );
 }
+
+export default memo(CodeEditor);
