@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { Activity, Database, GitBranch, Layers3, Orbit, Sigma } from 'lucide-react';
 import { COMPLEXITY_PRESETS, parseComplexityInsights } from '../utils/complexity';
 
@@ -313,7 +313,7 @@ function ComplexityGraph({ currentPreset, finalPreset }) {
   );
 }
 
-export default function ComplexityVisualizer({ complexityText, optimizationText, code }) {
+function ComplexityVisualizer({ complexityText, optimizationText, code }) {
   const insights = useMemo(
     () => parseComplexityInsights({ complexityText, optimizationText, code }),
     [complexityText, optimizationText, code]
@@ -410,3 +410,5 @@ export default function ComplexityVisualizer({ complexityText, optimizationText,
     </section>
   );
 }
+
+export default memo(ComplexityVisualizer);
