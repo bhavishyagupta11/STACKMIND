@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import { getHistory } from '../services/reviewService';
@@ -53,6 +53,8 @@ function RecentReviewCard({ review }) {
   );
 }
 
+const MemoRecentReviewCard = memo(RecentReviewCard);
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [recent, setRecent] = useState([]);
@@ -60,21 +62,29 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       try {
         const data = await getHistory(1, 5);
-        setRecent(data.reviews);
-        setTotal(data.total);
+        if (!cancelled) {
+          setRecent(data.reviews);
+          setTotal(data.total);
+        }
       } catch {
         // silent
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const interviewCount = recent.filter((r) => r.interviewMode).length;
+  const interviewCount = useMemo(() => recent.filter((r) => r.interviewMode).length, [recent]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
@@ -152,7 +162,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {recent.map((r) => <RecentReviewCard key={r._id} review={r} />)}
+            {recent.map((r) => <MemoRecentReviewCard key={r._id} review={r} />)}
           </div>
         )}
       </div>
