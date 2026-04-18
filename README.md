@@ -4,7 +4,7 @@ A production-quality, full-stack web application for AI-powered code reviews und
 
 ---
 
-## 📸 Features
+## 📸 Features - 
 
 - **Monaco Editor** — VS Code-grade editor with syntax highlighting for 15+ languages
 - **File Upload** — Upload `.js`, `.py`, `.java`, `.cpp`, `.ts`, `.go`, `.rs`, and more
