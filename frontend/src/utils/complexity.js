@@ -60,7 +60,7 @@ export const COMPLEXITY_PRESETS = [
     hue: 'fuchsia',
     label: 'Exponential',
     description: 'Explodes very fast as input grows.',
-    project: (n) => Math.pow(2, Math.min(n, 20)),
+    project: (n) => Math.pow(2, Math.min(n, 100)),
   },
   {
     key: 'O(n!)',
@@ -71,7 +71,11 @@ export const COMPLEXITY_PRESETS = [
     description: 'Brute-force territory with severe scaling costs.',
     project: (n) => {
       let total = 1;
-      for (let i = 2; i <= Math.min(n, 10); i += 1) total *= i;
+      const limit = Math.min(n, 100);
+      for (let i = 2; i <= limit; i += 1) {
+        total *= i;
+        if (total > 1e100) break;
+      }
       return total;
     },
   },
@@ -170,8 +174,8 @@ const parseComplexityDimension = (text, type) => {
 
 const summarizeCodeSignals = (code = '') => {
   const lineCount = code.split('\n').filter((line) => line.trim()).length;
-  const loopCount = (code.match(/\b(for|while)\b/g) || []).length;
-  const nestedLoop = /for\s*\([\s\S]{0,200}?for\s*\(|while\s*\([\s\S]{0,200}?while\s*\(|for\s*\([\s\S]{0,200}?while\s*\(|while\s*\([\s\S]{0,200}?for\s*\(/i.test(code);
+  const loopCount = (code.match(/\b(for|while|forEach|map|filter|reduce)\b/g) || []).length;
+  const nestedLoop = /for\s*\([\s\S]{0,400}?for\s*\(|while\s*\([\s\S]{0,400}?while\s*\(|for\s*\([\s\S]{0,400}?while\s*\(|while\s*\([\s\S]{0,400}?for\s*\(|\.(forEach|map|filter|reduce)\s*\([\s\S]{0,400}?\.(forEach|map|filter|reduce)\s*\(/i.test(code);
   const recursion = (() => {
     const functionNames = [
       ...code.matchAll(/function\s+([a-zA-Z_$][\w$]*)\s*\(/g),
@@ -205,12 +209,18 @@ const summarizeCodeSignals = (code = '') => {
 
 const buildProjection = (dimension) => {
   const values = INPUT_SIZES.map((size) => dimension.project(size));
-  const max = Math.max(...values, 1);
+  const LOG_MAX_OPS = 10;
 
-  return INPUT_SIZES.map((size, index) => ({
-    size,
-    width: clamp(Math.round((values[index] / max) * 100), 8, 100),
-  }));
+  return INPUT_SIZES.map((size, index) => {
+    const val = Math.max(values[index], 1);
+    const logVal = Math.log10(val);
+    const percentage = (logVal / LOG_MAX_OPS) * 100;
+    
+    return {
+      size,
+      width: clamp(Math.round(percentage), 8, 100),
+    };
+  });
 };
 
 const resolveFinalTimeComplexity = (time, optimizationTarget) =>

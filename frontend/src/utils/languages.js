@@ -65,6 +65,10 @@ const LANGUAGE_SIGNATURES = {
     /\bcin\s*>>/,
     /\bvector<[^>]+>/,
     /\bint\s+main\s*\(/,
+    /\b(?:public|private|protected)\s*:/,
+    /\blong\s+long\b/,
+    /\bclass\s+\w+\s*\{/,
+    /\bnullptr\b/
   ],
   c: [
     /(?:^|\n)\s*#include\s*<[^>]+>/,
@@ -72,6 +76,7 @@ const LANGUAGE_SIGNATURES = {
     /\bscanf\s*\(/,
     /\bint\s+main\s*\(/,
     /\bstruct\s+\w+/,
+    /\b(?:malloc|free|calloc)\s*\(/
   ],
   csharp: [
     /\busing\s+System\s*;/,
@@ -79,16 +84,17 @@ const LANGUAGE_SIGNATURES = {
     /\bnamespace\s+\w+/,
     /\bpublic\s+class\s+\w+/,
     /\bstring\[\]\s+args\b/,
+    /\b(?:get|set)\s*\{/
   ],
   go: [
     /(?:^|\n)\s*package\s+main\b/,
-    /\bfunc\s+main\s*\(/,
+    /\bfunc\s+\w+\s*\(/,
     /\bfmt\.Print(?:ln|f)?\s*\(/,
     /\bimport\s*\(/,
     /\b:=\s*/,
   ],
   rust: [
-    /\bfn\s+main\s*\(\)/,
+    /\bfn\s+\w+\s*\(/,
     /\bprintln!\s*\(/,
     /\blet\s+mut\b/,
     /\buse\s+std::/,
@@ -99,7 +105,7 @@ const LANGUAGE_SIGNATURES = {
     /\bputs\s+/,
     /(?:^|\n)\s*end\s*$/,
     /\brequire\s+['"]/,
-    /\bclass\s+\w+/,
+    /\bmodule\s+\w+/,
   ],
   php: [
     /<\?php/,
@@ -114,9 +120,10 @@ const LANGUAGE_SIGNATURES = {
     /\bfunc\s+\w+\s*\(/,
     /\bvar\s+\w+\s*:/,
     /\blet\s+\w+\s*:/,
+    /\bguard\s+let\b/
   ],
   kotlin: [
-    /\bfun\s+main\s*\(/,
+    /\bfun\s+\w+\s*\(/,
     /\bprintln\s*\(/,
     /\bval\s+\w+\s*:/,
     /\bvar\s+\w+\s*:/,
@@ -145,19 +152,19 @@ const LANGUAGE_SIGNATURES = {
 };
 
 const LANGUAGE_STRONG_SIGNATURES = {
-  javascript: [/=>/, /\bfunction\s+\w+\s*\(/, /\bimport\s+.*\sfrom\s+['"]/, /\bconsole\.log\s*\(/],
-  typescript: [/\binterface\s+\w+/, /\btype\s+\w+\s*=/, /\b(?:enum|implements|readonly)\b/, /:\s*(?:string|number|boolean|unknown|any|Record<|Array<|Promise<)/],
-  python: [/\bdef\s+\w+\s*\(/, /\bclass\s+\w+\s*:/, /\bprint\s*\(/, /\bimport\s+\w+/],
+  javascript: [/\bimport\s+.*\sfrom\s+['"]/, /\bconsole\.log\s*\(/, /\bdocument\.(?:getElementById|querySelector)\b/],
+  typescript: [/\binterface\s+\w+/, /\btype\s+\w+\s*=/, /:\s*(?:string|number|boolean|unknown|any|Record<|Array<|Promise<)/],
+  python: [/\bdef\s+\w+\s*\(/, /\bclass\s+\w+\s*:/, /\bimport\s+\w+/, /\bif\s+__name__\s*==\s*['"]__main__['"]:/],
   java: [/\bpublic\s+class\s+\w+/, /\bpublic\s+static\s+void\s+main\s*\(/, /\bSystem\.out\.println\s*\(/, /\bimport\s+java\./],
-  cpp: [/\b#include\s*<[^>]+>/, /\busing\s+namespace\s+std\s*;/, /\bstd::[A-Za-z_]\w*/, /\bint\s+main\s*\(/],
-  c: [/\b#include\s*<[^>]+>/, /\bprintf\s*\(/, /\bscanf\s*\(/, /\bint\s+main\s*\(/],
+  cpp: [/\b#include\s*<[^>]+>/, /\busing\s+namespace\s+std\s*;/, /\bstd::[A-Za-z_]\w*/, /\b(?:public|private|protected)\s*:/, /\bvector<[^>]+>/],
+  c: [/\b#include\s*<[^>]+>/, /\bprintf\s*\(/, /\bscanf\s*\(/, /\b(?:malloc|free|calloc)\s*\(/],
   csharp: [/\busing\s+System\s*;/, /\bConsole\.WriteLine\s*\(/, /\bnamespace\s+\w+/],
   go: [/\bpackage\s+main\b/, /\bfunc\s+main\s*\(/, /\bfmt\.Print(?:ln|f)?\s*\(/, /\b:=\s*/],
   rust: [/\bfn\s+main\s*\(\)/, /\bprintln!\s*\(/, /\blet\s+mut\b/, /\buse\s+std::/],
-  ruby: [/\bdef\s+\w+/, /\bputs\s+/, /\bclass\s+\w+/, /\brequire\s+['"]/],
-  php: [/<\?php/, /\becho\s+/, /\$\w+/],
-  swift: [/\bimport\s+Foundation\b/, /\bfunc\s+\w+\s*\(/, /\b(?:let|var)\s+\w+\s*:/],
-  kotlin: [/\bfun\s+main\s*\(/, /\bprintln\s*\(/, /\bdata\s+class\s+\w+/],
+  ruby: [/\bdef\s+\w+(?:\s*$|\s*\()/, /\bputs\s+/, /\brequire\s+['"]/],
+  php: [/<\?php/, /\becho\s+/, /\$\w+->/],
+  swift: [/\bimport\s+Foundation\b/, /\bfunc\s+\w+\s*\(/, /\bguard\s+let\b/],
+  kotlin: [/\bfun\s+\w+\s*\(/, /\bprintln\s*\(/, /\bdata\s+class\s+\w+/],
   sql: [/\bSELECT\b/i, /\bFROM\b/i, /\bCREATE\s+TABLE\b/i],
   html: [/<!doctype\s+html>/i, /<html[\s>]/i, /<body[\s>]/i],
   css: [/@media\b/i, /@keyframes\b/i, /\b(?:display|position|margin|padding|color|background)\s*:/i],
@@ -223,7 +230,7 @@ export const buildLanguageValidationDiagnostics = ({
 
   if (detectedLanguage && selectedLanguage && detectedLanguage !== selectedLanguage) {
     diagnostics.push({
-      severity: 'error',
+      severity: 'warning',
       lineNumber: 1,
       column: 1,
       message: `Language mismatch: code looks like ${detectedLabel}, but ${selectedLabel} is selected.`,
