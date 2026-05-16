@@ -132,10 +132,6 @@ export default function ReviewPage() {
     if (!code.trim()) return toast.error('Please enter some code to review');
     if (code.trim().length < 10) return toast.error('Code is too short to analyze');
 
-    if (mismatchIssue) {
-      return toast.error(mismatchIssue.message);
-    }
-
     setLoading(true);
     setResult(null);
     setError(null);
