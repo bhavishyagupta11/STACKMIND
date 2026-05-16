@@ -135,7 +135,7 @@ const GRAPH_HEIGHT = 340;
 const PADDING = { top: 20, right: 18, bottom: 42, left: 54 };
 
 const projectCurveValue = (preset, ratio) => {
-  const x = 1 + ratio * 9;
+  const x = 1 + ratio * 5;
 
   switch (preset.key) {
     case 'O(1)':
@@ -151,13 +151,9 @@ const projectCurveValue = (preset, ratio) => {
     case 'O(n^3)':
       return Math.pow(x, 3);
     case 'O(2^n)':
-      return Math.pow(2, x / 2);
-    case 'O(n!)': {
-      let factorial = 1;
-      const bounded = Math.max(1, Math.round(x / 1.5));
-      for (let i = 2; i <= Math.min(bounded, 7); i += 1) factorial *= i;
-      return factorial;
-    }
+      return Math.pow(2, x);
+    case 'O(n!)':
+      return Math.sqrt(2 * Math.PI * x) * Math.pow(x / Math.E, x);
     default:
       return x;
   }
@@ -183,7 +179,9 @@ function ComplexityGraph({ currentPreset, finalPreset }) {
   const graphPresets = finalPreset && finalPreset.key !== currentPreset.key
     ? [currentPreset, finalPreset]
     : [currentPreset];
-  const maxValue = Math.max(...graphPresets.map((preset) => projectCurveValue(preset, 1)), 1);
+  const rawMax = Math.max(...graphPresets.map((preset) => projectCurveValue(preset, 1)));
+  const baseMax = projectCurveValue({ key: 'O(n)' }, 1);
+  const maxValue = Math.max(rawMax, baseMax, 1);
   const currentPath = buildCurvePath(currentPreset, maxValue);
   const finalPath = finalPreset && finalPreset.key !== currentPreset.key
     ? buildCurvePath(finalPreset, maxValue)
@@ -197,6 +195,19 @@ function ComplexityGraph({ currentPreset, finalPreset }) {
       PADDING.bottom -
       (projectCurveValue(finalPreset, 1) / maxValue) * (GRAPH_HEIGHT - PADDING.top - PADDING.bottom)
     : null;
+
+  let currentLabelY = Math.max(currentEndY - 10, PADDING.top + 16);
+  let finalLabelY = finalEndY !== null ? Math.max(finalEndY - 18, PADDING.top + 34) : null;
+
+  if (finalLabelY !== null && Math.abs(currentLabelY - finalLabelY) < 24) {
+    if (currentLabelY < finalLabelY) {
+      currentLabelY -= 12;
+      finalLabelY += 12;
+    } else {
+      currentLabelY += 12;
+      finalLabelY -= 12;
+    }
+  }
 
   return (
     <div className="rounded-[24px] border border-border bg-[#fffdfa] p-5">
@@ -273,7 +284,7 @@ function ComplexityGraph({ currentPreset, finalPreset }) {
 
           <text
             x={GRAPH_WIDTH - 130}
-            y={Math.max(currentEndY - 10, PADDING.top + 16)}
+            y={currentLabelY}
             fill="#b91c1c"
             fontSize="16"
             fontWeight="700"
@@ -284,7 +295,7 @@ function ComplexityGraph({ currentPreset, finalPreset }) {
           {finalPath && finalEndY !== null && (
             <text
               x={GRAPH_WIDTH - 150}
-              y={Math.max(finalEndY - 18, PADDING.top + 34)}
+              y={finalLabelY}
               fill="#0f766e"
               fontSize="15"
               fontWeight="700"
